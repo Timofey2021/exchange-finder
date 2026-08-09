@@ -79,20 +79,20 @@
   .seg button[aria-pressed="true"] .cc{color:rgba(255,255,255,.72)}
   .seg button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
-  .res-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:4px 2px 10px}
+  .res-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:4px 2px 10px; flex-wrap:wrap}
   .res-head h2{font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); margin:0; font-weight:600}
-  .res-head .cnt{font-size:12px; color:var(--ink-faint); font-family:var(--mono); white-space:nowrap}
+  .res-head .cnt{font-size:12.5px; color:var(--ink-soft); font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .res-head .cnt b{color:var(--ink); font-weight:700}
   .results{display:flex; flex-direction:column; gap:12px; margin-bottom:8px}
 
   .card{position:relative; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 16px 15px 19px; box-shadow:var(--shadow); overflow:hidden}
   .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev)}
   .card.best{border-color:color-mix(in srgb,var(--sev) 55%,var(--line))}
   .card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap}
-  .route-name{font-size:15px; font-weight:650; letter-spacing:-.01em; margin:0 0 3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
+  .route-name{font-size:15px; font-weight:650; letter-spacing:-.01em; margin:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
   .best-badge{font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--sev); background:color-mix(in srgb,var(--sev) 15%,transparent); padding:2px 7px; border-radius:5px; white-space:nowrap}
-  .rate-line{font-size:12px; color:var(--ink-soft); font-family:var(--mono); font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
-  .amounts{text-align:right; white-space:nowrap; margin-left:auto}
-  .out{font-family:var(--mono); font-size:20px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; line-height:1.1}
+  .amounts{text-align:right; margin-left:auto}
+  .out{font-family:var(--mono); font-size:20px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; line-height:1.1; white-space:nowrap}
   .lost{font-size:12px; font-family:var(--mono); margin-top:3px; font-variant-numeric:tabular-nums; color:var(--ink-faint)}
   .lost.gainc{color:var(--gain)}
   .meter{display:flex; align-items:center; gap:12px; margin-top:13px}
@@ -100,15 +100,13 @@
   .bar{flex:1; height:6px; border-radius:4px; background:var(--surface-2); overflow:hidden}
   .bar i{display:block; height:100%; background:var(--sev); border-radius:4px; transition:width .35s cubic-bezier(.2,.7,.2,1)}
   .steps{display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--line-soft)}
-  .steps .st{font-size:11.5px; font-family:var(--mono); color:var(--ink-soft); background:var(--surface-3); border:1px solid var(--line-soft); padding:3px 8px; border-radius:6px; white-space:nowrap}
+  .steps .st{font-size:11.5px; font-family:var(--mono); color:var(--ink-soft); background:var(--surface-3); border:1px solid var(--line-soft); padding:3px 8px; border-radius:6px}
   .steps .arr{color:var(--ink-faint); font-size:11px}
 
   details.rates{margin-top:20px; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden}
-  details.rates summary{cursor:pointer; padding:15px 18px; font-weight:600; font-size:14px; display:flex; align-items:center; gap:9px; list-style:none; user-select:none}
+  details.rates summary{cursor:pointer; padding:15px 18px; font-weight:600; font-size:14px; color:var(--accent); display:flex; align-items:center; gap:8px; list-style:none; user-select:none}
   details.rates summary::-webkit-details-marker{display:none}
-  details.rates summary::before{content:"▸"; color:var(--ink-faint); transition:transform .2s; font-size:11px}
-  details.rates[open] summary::before{transform:rotate(90deg)}
-  details.rates summary .hint{color:var(--ink-faint); font-weight:400; font-size:12.5px}
+  details.rates summary::before{content:none}
   .rgroup{padding:2px 18px 6px}
   .rgroup h3{font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin:14px 0 8px}
   .rnote{font-size:11.5px; color:var(--ink-faint); margin:8px 0 2px; line-height:1.4}
@@ -119,13 +117,6 @@
   .rates-foot{display:flex; justify-content:flex-end; padding:14px 18px 18px}
   .reset{cursor:pointer; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--accent); background:transparent; border:1px solid var(--line); border-radius:9px; padding:8px 14px}
   .reset:hover{background:var(--accent-soft); border-color:var(--accent)}
-
-  footer{margin-top:24px; padding:18px 20px; background:var(--surface-3); border:1px solid var(--line-soft); border-radius:14px}
-  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px}
-  .legend span{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft); font-family:var(--mono)}
-  .legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
-  .note{font-size:13px; color:var(--ink-soft); margin:0; line-height:1.5}
-  .note b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -172,19 +163,10 @@
   <section class="results" id="results"></section>
 
   <details class="rates">
-    <summary>Курсы и комиссии <span class="hint">— мировой курс тянется сам</span></summary>
+    <summary>✏️ Изменить курсы и комиссии</summary>
     <div id="ratesBody"></div>
     <div class="rates-foot"><button class="reset" type="button" id="resetBtn">Сбросить</button></div>
   </details>
-
-  <footer>
-    <div class="legend">
-      <span><i style="background:var(--gain)"></i>выгодно</span>
-      <span><i style="background:var(--ok)"></i>средне</span>
-      <span><i style="background:var(--bad)"></i>дорого</span>
-    </div>
-    <p class="note">Выбери, что у тебя есть и что хочешь получить — маршруты встанут от самого выгодного к самому дорогому. У каждого способа зафиксирован его процент комиссии к мировому курсу; сам курс подтягивается живым, поэтому сумма всегда актуальна.</p>
-  </footer>
 </div>
 
 <script>
@@ -199,7 +181,6 @@
     USDT:{sym:"USDT",dp:2, name:"USDT",   short:"USDT",    code:"USDT"}
   };
 
-  // World rates (auto-fetched) + fixed deviations (%, + = favorable, − = cost)
   var DEF = {
     eu:1.1557, eh:366, ur:81.41,
     exch:4.62, altynIn:0.20, ntCard:-5.54, ntRU:-4.52, aRU:-5.23,
@@ -211,8 +192,8 @@
   var WORLD = [["eu","1 € = $ (EUR/USD)","0.0001"],["eh","1 € = Ft (EUR/HUF)","0.1"],["ur","1 $ = ₽ (USD/RUB)","0.01"]];
   var DGROUPS = [
     {title:"USDT ↔ рубли  (%, + выгода / − потеря)", items:[["exch","обменник в РФ USDT→₽"],["altynIn","Altyn USDT→₽"],["ntCard","Antarctic→карта USDT→₽"],["ntRU","Antarctic ₽→USDT"],["aRU","Altyn ₽→USDT"]]},
-    {title:"EUR ↔ USDT  (%)", items:[["cash","нал EUR→USDT"],["pEU","P2P EUR→USDT"],["sUE","USDT→EUR"]]},
-    {title:"Карты  (%)", items:[["acRH","Altyn ₽→Ft"],["aRE","Altyn ₽→EUR"],["wEH","Wise EUR→Ft"],["wHE","Wise Ft→EUR"],["fEH","Freedom EUR→Ft"],["otp","OTP внутр Ft→EUR"]]},
+    {title:"EUR ↔ USDT  (%)", items:[["cash","наличка €→USDT"],["pEU","криптобиржа €↔USDT (P2P)"],["sUE","USDT→€ на бирже"]]},
+    {title:"Карты  (%)", items:[["acRH","Altyn карта ₽→Ft"],["aRE","Altyn ₽→€ (Freedom)"],["wEH","Wise €→Ft"],["wHE","Wise Ft→€"],["fEH","Freedom €→Ft"],["otp","OTP внутри банка Ft→€"]]},
     {title:"Revolut  (%)", items:[["revWk","будни"],["revWe","выходные"]]}
   ];
 
@@ -220,43 +201,58 @@
   function er(R){ return R.ur*R.eu; }
   function rev(R,wk){ return af(wk ? R.revWe : R.revWk); }
 
+  // steps описывают КОНКРЕТНО, где происходит каждая конвертация
   var ROUTES = [
-    {f:"RUB",t:"HUF",label:"Altyn-карта напрямую",steps:["Altyn-карта"],m:function(R){return (R.eh/er(R))*af(R.acRH);}},
-    {f:"RUB",t:"HUF",label:"Antarctic → USDT → EUR → HUF",steps:["Antarctic","USDT","EUR","Revolut→Ft"],m:function(R,wk){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
-    {f:"RUB",t:"HUF",label:"Altyn-крипта → USDT → EUR → HUF",steps:["Altyn","USDT","EUR","Revolut→Ft"],m:function(R,wk){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
-    {f:"RUB",t:"EUR",label:"Altyn → Freedom (евросчёт)",steps:["Altyn","Freedom €"],m:function(R){return (1/er(R))*af(R.aRE);}},
-    {f:"RUB",t:"EUR",label:"Antarctic → USDT → EUR",steps:["Antarctic","USDT","EUR"],m:function(R){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE);}},
-    {f:"RUB",t:"EUR",label:"Altyn-крипта → USDT → EUR",steps:["Altyn","USDT","EUR"],m:function(R){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE);}},
-    {f:"RUB",t:"USDT",label:"Antarctic (пополнение)",steps:["Antarctic ₽→USDT"],m:function(R){return (1/R.ur)*af(R.ntRU);}},
-    {f:"RUB",t:"USDT",label:"Altyn (вывод в крипту)",steps:["Altyn ₽→USDT"],m:function(R){return (1/R.ur)*af(R.aRU);}},
-    {f:"HUF",t:"HUF",label:"OTP-карта напрямую",steps:["OTP-карта"],m:function(){return 1;}},
-    {f:"HUF",t:"EUR",label:"OTP → Revolut → конвертация",steps:["OTP ₽0","Revolut Ft→€"],m:function(R,wk){return (1/R.eh)*rev(R,wk);}},
-    {f:"HUF",t:"EUR",label:"OTP → Wise → конвертация",steps:["OTP ₽0","Wise Ft→€"],m:function(R){return (1/R.eh)*af(R.wHE);}},
-    {f:"HUF",t:"EUR",label:"Конвертация внутри OTP",steps:["OTP Ft→€"],m:function(R){return (1/R.eh)*af(R.otp);}},
-    {f:"HUF",t:"RUB",label:"Revolut → P2P → обменник в РФ",exch:true,steps:["Revolut Ft→€","P2P €→USDT","обменник РФ"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"HUF",t:"RUB",label:"Revolut → P2P → Altyn",steps:["Revolut","P2P","Altyn"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
-    {f:"HUF",t:"RUB",label:"Wise → P2P → обменник в РФ",exch:true,steps:["Wise Ft→€","P2P","обменник РФ"],m:function(R){return (1/R.eh)*af(R.wHE)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"EUR",t:"EUR",label:"Freedom / Wise / Revolut — трата в €",steps:["карта в €"],m:function(){return 1;}},
-    {f:"EUR",t:"HUF",label:"Revolut EUR→HUF",steps:["Revolut"],m:function(R,wk){return R.eh*rev(R,wk);}},
-    {f:"EUR",t:"HUF",label:"Wise EUR→HUF",steps:["Wise"],m:function(R){return R.eh*af(R.wEH);}},
-    {f:"EUR",t:"HUF",label:"Freedom EUR→HUF (двойная)",steps:["Freedom €→$→Ft"],m:function(R){return R.eh*af(R.fEH);}},
-    {f:"EUR",t:"RUB",label:"P2P → USDT → обменник в РФ",exch:true,steps:["P2P €→USDT","обменник РФ"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"EUR",t:"RUB",label:"P2P → USDT → Altyn",steps:["P2P","Altyn"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
-    {f:"EUR",t:"USDT",label:"P2P (обмен на USDT)",steps:["P2P €→USDT"],m:function(R){return R.eu*af(R.pEU);}},
-    {f:"EURC",t:"RUB",label:"Наличка → USDT → обменник в РФ",exch:true,steps:["обменник €→USDT","обменник РФ"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.exch);}},
-    {f:"EURC",t:"RUB",label:"Наличка → USDT → Altyn",steps:["обменник €→USDT","Altyn"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.altynIn);}},
-    {f:"EURC",t:"USDT",label:"Наличка → USDT (обменник)",steps:["обменник €→USDT"],m:function(R){return R.eu*af(R.cash);}},
-    {f:"USDT",t:"RUB",label:"Обменник в РФ",exch:true,steps:["обменник РФ USDT→₽"],m:function(R){return R.ur*af(R.exch);}},
-    {f:"USDT",t:"RUB",label:"Altyn (ввод)",steps:["Altyn USDT→₽"],m:function(R){return R.ur*af(R.altynIn);}},
-    {f:"USDT",t:"RUB",label:"Antarctic → карта",steps:["Antarctic→карта"],m:function(R){return R.ur*af(R.ntCard);}},
-    {f:"USDT",t:"EUR",label:"Продажа USDT за евро",steps:["обменник/биржа"],m:function(R){return (1/R.eu)*af(R.sUE);}},
-    {f:"USDT",t:"HUF",label:"USDT → EUR → HUF (Revolut)",steps:["→ EUR","Revolut→Ft"],m:function(R,wk){return (1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}}
+    // РУБЛИ -> ФОРИНТЫ
+    {f:"RUB",t:"HUF",label:"Altyn-карта напрямую",steps:["Altyn: карта платит в Ft"],m:function(R){return (R.eh/er(R))*af(R.acRH);}},
+    {f:"RUB",t:"HUF",label:"Antarctic → биржа → Revolut",steps:["Antarctic: ₽→USDT","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
+    {f:"RUB",t:"HUF",label:"Altyn-крипта → биржа → Revolut",steps:["Altyn: ₽→USDT (крипта)","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
+    // РУБЛИ -> ЕВРО
+    {f:"RUB",t:"EUR",label:"Altyn → Freedom (евросчёт)",steps:["Altyn: ₽ → на евросчёт Freedom"],m:function(R){return (1/er(R))*af(R.aRE);}},
+    {f:"RUB",t:"EUR",label:"Antarctic → биржа",steps:["Antarctic: ₽→USDT","Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE);}},
+    {f:"RUB",t:"EUR",label:"Altyn-крипта → биржа",steps:["Altyn: ₽→USDT (крипта)","Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE);}},
+    // РУБЛИ -> USDT
+    {f:"RUB",t:"USDT",label:"Antarctic (пополнение)",steps:["Antarctic: ₽→USDT"],m:function(R){return (1/R.ur)*af(R.ntRU);}},
+    {f:"RUB",t:"USDT",label:"Altyn (вывод в крипту)",steps:["Altyn: ₽→USDT (крипта)"],m:function(R){return (1/R.ur)*af(R.aRU);}},
+    // ФОРИНТЫ -> ФОРИНТЫ
+    {f:"HUF",t:"HUF",label:"OTP-карта напрямую",steps:["OTP: платишь картой в Ft"],m:function(){return 1;}},
+    // ФОРИНТЫ -> ЕВРО
+    {f:"HUF",t:"EUR",label:"OTP → Revolut",steps:["OTP → Revolut: Ft (бесплатно)","Revolut: Ft→€"],m:function(R,wk){return (1/R.eh)*rev(R,wk);}},
+    {f:"HUF",t:"EUR",label:"OTP → Wise",steps:["OTP → Wise: Ft (бесплатно)","Wise: Ft→€"],m:function(R){return (1/R.eh)*af(R.wHE);}},
+    {f:"HUF",t:"EUR",label:"Конвертация внутри OTP",steps:["OTP: Ft→€ внутри банка"],m:function(R){return (1/R.eh)*af(R.otp);}},
+    // ФОРИНТЫ -> РУБЛИ
+    {f:"HUF",t:"RUB",label:"Revolut → биржа → обменник РФ",exch:true,steps:["Revolut: Ft→€","Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    {f:"HUF",t:"RUB",label:"Revolut → биржа → Altyn",steps:["Revolut: Ft→€","Криптобиржа: €→USDT (P2P)","Altyn: USDT→₽"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
+    {f:"HUF",t:"RUB",label:"Wise → биржа → обменник РФ",exch:true,steps:["Wise: Ft→€","Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R){return (1/R.eh)*af(R.wHE)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    // ЕВРО -> ЕВРО
+    {f:"EUR",t:"EUR",label:"Трата в евро (Freedom / Wise / Revolut)",steps:["Платишь картой в €"],m:function(){return 1;}},
+    // ЕВРО -> ФОРИНТЫ
+    {f:"EUR",t:"HUF",label:"Revolut",steps:["Revolut: €→Ft"],m:function(R,wk){return R.eh*rev(R,wk);}},
+    {f:"EUR",t:"HUF",label:"Wise",steps:["Wise: €→Ft"],m:function(R){return R.eh*af(R.wEH);}},
+    {f:"EUR",t:"HUF",label:"Freedom (двойная конвертация)",steps:["Freedom: €→$→Ft"],m:function(R){return R.eh*af(R.fEH);}},
+    // ЕВРО -> РУБЛИ
+    {f:"EUR",t:"RUB",label:"Биржа → обменник в РФ",exch:true,steps:["Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    {f:"EUR",t:"RUB",label:"Биржа → Altyn",steps:["Криптобиржа: €→USDT (P2P)","Altyn: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
+    // ЕВРО -> USDT
+    {f:"EUR",t:"USDT",label:"Криптобиржа (P2P)",steps:["Криптобиржа: €→USDT (P2P)"],m:function(R){return R.eu*af(R.pEU);}},
+    // ЕВРО НАЛИЧКОЙ -> РУБЛИ
+    {f:"EURC",t:"RUB",label:"Наличный обменник → обменник в РФ",exch:true,steps:["Обменник: наличка €→USDT","Обменник в РФ: USDT→₽"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.exch);}},
+    {f:"EURC",t:"RUB",label:"Наличный обменник → Altyn",steps:["Обменник: наличка €→USDT","Altyn: USDT→₽"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.altynIn);}},
+    // ЕВРО НАЛИЧКОЙ -> USDT
+    {f:"EURC",t:"USDT",label:"Наличный обменник",steps:["Обменник: наличка €→USDT"],m:function(R){return R.eu*af(R.cash);}},
+    // USDT -> РУБЛИ
+    {f:"USDT",t:"RUB",label:"Обменник в РФ",exch:true,steps:["Обменник в РФ: USDT→₽"],m:function(R){return R.ur*af(R.exch);}},
+    {f:"USDT",t:"RUB",label:"Altyn (завести и продать)",steps:["Altyn: USDT→₽"],m:function(R){return R.ur*af(R.altynIn);}},
+    {f:"USDT",t:"RUB",label:"Antarctic на карту",steps:["Antarctic: USDT→₽ на карту РФ"],m:function(R){return R.ur*af(R.ntCard);}},
+    // USDT -> ЕВРО
+    {f:"USDT",t:"EUR",label:"Криптобиржа (P2P)",steps:["Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.eu)*af(R.sUE);}},
+    // USDT -> ФОРИНТЫ
+    {f:"USDT",t:"HUF",label:"Биржа → Revolut",steps:["Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}}
   ];
 
   var TARGETS = { RUB:["HUF","EUR","USDT"], HUF:["HUF","EUR","RUB"], EUR:["EUR","HUF","RUB","USDT"], EURC:["RUB","USDT"], USDT:["RUB","EUR","HUF"] };
   var DEFTGT = { RUB:"HUF", HUF:"EUR", EUR:"RUB", EURC:"RUB", USDT:"RUB" };
   var FROMS = ["RUB","HUF","EUR","EURC","USDT"];
-  // обменник в РФ принимает только суммы от ~200 000 ₽ — ниже порога его маршруты скрываются
   var MIN_EXCH = { HUF:800000, EUR:2000, EURC:2000, USDT:2200 };
 
   var state = { amount:2000, from:"EUR", to:"RUB", weekend:false, R:Object.assign({},DEF) };
@@ -329,33 +325,28 @@
     var mkt=marketMult(f,t,R);
     var list=ROUTES.filter(function(x){return x.f===f&&x.t===t&&!(x.exch&&amt<(MIN_EXCH[f]||0));}).map(function(x){return {r:x,mult:x.m(R,wk)};}).sort(function(a,b){return b.mult-a.mult;});
     document.getElementById("resTitle").textContent=(t===f?"Трата в "+CUR[t].name:"Перевод в "+CUR[t].name);
-    var n=list.length; document.getElementById("resCnt").textContent=n+(n===1?" способ":(n>=2&&n<=4?" способа":" способов"));
+    var marketOut=amt*mkt;
+    document.getElementById("resCnt").innerHTML=(t===f?"":"по рынку было бы <b>"+fmt(marketOut,t)+"</b>");
     var bestMult=list.length?list[0].mult:1;
     var results=document.getElementById("results"); results.innerHTML="";
-    var marketOut=amt*mkt;
     list.forEach(function(item,i){
       var rt=item.r, mult=item.mult, out=amt*mult, delta=mult/mkt-1, diff=out-marketOut, s=sev(delta);
       var card=el("div","card"+(i===0&&list.length>1?" best":"")); card.style.setProperty("--sev",s.c); card.style.setProperty("--sev-bg",s.bg);
       var top=el("div","card-top"); var left=el("div");
       var name=el("div","route-name"); name.appendChild(document.createTextNode(rt.label));
       if(i===0&&list.length>1) name.appendChild(el("span","best-badge","лучший"));
-      left.appendChild(name);
-      var rl=el("div","rate-line");
-      if(f===t){ rl.textContent="1:1 · по рынку"; }
-      else { var line,mline; if(mult>=1){line="1 "+CUR[f].sym+" = "+fmtRate(mult)+" "+CUR[t].sym; mline=fmtRate(mkt);} else {line="1 "+CUR[t].sym+" = "+fmtRate(1/mult)+" "+CUR[f].sym; mline=fmtRate(1/mkt);} rl.textContent=line+"  ·  рынок "+mline; }
-      left.appendChild(rl); top.appendChild(left);
+      left.appendChild(name); top.appendChild(left);
       var am=el("div","amounts"); am.appendChild(el("div","out",fmt(out,t)));
       var lost=el("div","lost");
       if(f===t || Math.abs(diff)<0.5){ lost.textContent="по рынку"; }
-      else if(diff>0){ lost.className="lost gainc"; lost.textContent="выгода +"+fmt(diff,t); }
-      else { lost.textContent="теряешь "+fmt(-diff,t); }
+      else if(diff>0){ lost.className="lost gainc"; lost.textContent="выгода +"+fmt(diff,t)+" · "+fmt(diff/mkt,f); }
+      else { lost.textContent="теряешь "+fmt(-diff,t)+" · "+fmt(-diff/mkt,f); }
       am.appendChild(lost); top.appendChild(am); card.appendChild(top);
       var meter=el("div","meter"); meter.appendChild(el("div","loss-pill",(delta>=0?"+":"−")+Math.abs(delta*100).toFixed(1).replace(".",",")+"%"));
       var bar=el("div","bar"); var fill=el("i"); fill.style.width=Math.max(4,Math.min(100,mult/bestMult*100))+"%"; bar.appendChild(fill); meter.appendChild(bar); card.appendChild(meter);
       var steps=el("div","steps"); rt.steps.forEach(function(st,j){ if(j>0)steps.appendChild(el("span","arr","→")); steps.appendChild(el("span","st",st)); }); card.appendChild(steps);
       results.appendChild(card);
     });
-    updateBar();
   }
 
   function refreshWorld(){
@@ -366,15 +357,15 @@
       state.R.eu=+(1/E).toFixed(4); if(H) state.R.eh=+(H/E).toFixed(2); if(U) state.R.ur=+(U).toFixed(2);
       ["eu","eh","ur"].forEach(function(k){var e=document.getElementById("r_"+k); if(e)e.value=state.R[k];});
       var d=j.time_last_update_utc ? new Date(j.time_last_update_utc) : new Date();
-      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); render();
+      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); updateBar(); render();
     }).catch(function(){ st.textContent="авто-курс недоступен — курс можно вписать вручную"; });
   }
 
   document.getElementById("amount").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.amount=isNaN(v)?0:v; render();});
   document.getElementById("refreshBtn").addEventListener("click",refreshWorld);
-  document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); syncRateInputs(); render(); });
+  document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); syncRateInputs(); updateBar(); render(); });
 
-  buildWk(); buildFrom(); buildTo(); buildRates(); render(); refreshWorld();
+  buildWk(); buildFrom(); buildTo(); buildRates(); updateBar(); render(); refreshWorld();
 })();
 </script>
 </body>
