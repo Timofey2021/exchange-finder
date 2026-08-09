@@ -137,8 +137,8 @@
       <div>
         <label class="lbl" for="amount">Сумма</label>
         <div class="amount-row">
-          <input id="amount" type="number" inputmode="decimal" min="0" value="2000" aria-label="Сумма">
-          <span class="cur-tag" id="fromSym">€</span>
+          <input id="amount" type="number" inputmode="decimal" min="0" value="10000" aria-label="Сумма">
+          <span class="cur-tag" id="fromSym">₽</span>
         </div>
       </div>
       <div>
@@ -255,7 +255,7 @@
   var FROMS = ["RUB","HUF","EUR","EURC","USDT"];
   var MIN_EXCH = { HUF:800000, EUR:2000, EURC:2000, USDT:2200 };
 
-  var state = { amount:2000, from:"EUR", to:"RUB", weekend:false, R:Object.assign({},DEF) };
+  var state = { amount:10000, from:"RUB", to:"HUF", weekend:false, R:Object.assign({},DEF) };
 
   var nfc={};
   function fmt(v,c){ var dp=CUR[c].dp; if(!nfc[c]) nfc[c]=new Intl.NumberFormat("ru-RU",{minimumFractionDigits:dp,maximumFractionDigits:dp}); return nfc[c].format(v)+" "+CUR[c].sym; }
