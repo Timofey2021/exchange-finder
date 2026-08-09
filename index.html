@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор переводов</title>
+<style>
+  :root{
+    --bg:#eef0f3; --surface:#ffffff; --surface-2:#e7eaef; --surface-3:#f6f7f9;
+    --ink:#191d24; --ink-soft:#59626f; --ink-faint:#8b93a1;
+    --line:#d9dee5; --line-soft:#e6eaef;
+    --accent:#3a54cc; --accent-soft:#e5e9fb;
+    --ok:#c07d15; --ok-bg:#f6ead1;
+    --bad:#cc3d3d; --bad-bg:#f7dede;
+    --gain:#0a7d55; --gain-bg:#cdeee0;
+    --shadow:0 1px 2px rgba(24,30,45,.04),0 8px 24px -12px rgba(24,30,45,.18);
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e1116; --surface:#161b22; --surface-2:#1e242d; --surface-3:#12161c;
+      --ink:#e7ebf1; --ink-soft:#9aa4b2; --ink-faint:#69727f;
+      --line:#28303a; --line-soft:#212832; --accent:#7d97ff; --accent-soft:#1c2440;
+      --ok:#e2a744; --ok-bg:#33280f; --bad:#f2685f; --bad-bg:#341a1a; --gain:#43d29b; --gain-bg:#0f3227;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef0f3; --surface:#ffffff; --surface-2:#e7eaef; --surface-3:#f6f7f9;
+    --ink:#191d24; --ink-soft:#59626f; --ink-faint:#8b93a1; --line:#d9dee5; --line-soft:#e6eaef;
+    --accent:#3a54cc; --accent-soft:#e5e9fb; --ok:#c07d15; --ok-bg:#f6ead1;
+    --bad:#cc3d3d; --bad-bg:#f7dede; --gain:#0a7d55; --gain-bg:#cdeee0;
+    --shadow:0 1px 2px rgba(24,30,45,.04),0 8px 24px -12px rgba(24,30,45,.18);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --surface:#161b22; --surface-2:#1e242d; --surface-3:#12161c;
+    --ink:#e7ebf1; --ink-soft:#9aa4b2; --ink-faint:#69727f; --line:#28303a; --line-soft:#212832;
+    --accent:#7d97ff; --accent-soft:#1c2440; --ok:#e2a744; --ok-bg:#33280f;
+    --bad:#f2685f; --bad-bg:#341a1a; --gain:#43d29b; --gain-bg:#0f3227;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0; overflow-x:hidden}
+  .wrap{font-family:var(--sans); color:var(--ink); background:var(--bg); width:100%;
+    min-height:100vh; padding:clamp(16px,4vw,44px); max-width:920px; margin:0 auto;
+    line-height:1.45; -webkit-font-smoothing:antialiased;}
+
+  header{margin-bottom:18px}
+  h1{font-size:clamp(24px,5.5vw,34px); line-height:1.05; margin:0; letter-spacing:-.02em; font-weight:700}
+
+  .ratebar{display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap; margin:0 0 20px;
+    padding:11px 14px; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); box-shadow:var(--shadow)}
+  .ratebar .rb-rates{font-variant-numeric:tabular-nums; display:flex; gap:10px 14px; flex-wrap:wrap; min-width:0}
+  .ratebar .rb-rates b{color:var(--ink); font-weight:700}
+  .ratebar button{cursor:pointer; font-family:var(--sans); font-weight:600; font-size:12.5px; color:var(--accent);
+    background:transparent; border:1px solid var(--line); border-radius:8px; padding:5px 11px; white-space:nowrap}
+  .ratebar button:hover{background:var(--accent-soft); border-color:var(--accent)}
+  .ratebar .rb-status{color:var(--ink-faint); font-size:11.5px; flex-basis:100%}
+
+  .controls{display:flex; flex-direction:column; gap:16px; background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; padding:18px; box-shadow:var(--shadow); margin-bottom:22px}
+  .row2{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:640px){.row2{grid-template-columns:1fr 1fr}}
+  label.lbl{display:block; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); font-weight:600; margin-bottom:9px}
+  .amount-row{display:flex; align-items:stretch; border:1px solid var(--line); border-radius:11px; overflow:hidden; background:var(--surface-3); transition:border-color .15s,box-shadow .15s}
+  .amount-row:focus-within{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  #amount{flex:1; min-width:0; width:100%; border:0; background:transparent; color:var(--ink); font-family:var(--mono); font-size:22px; font-weight:600; padding:13px 14px; outline:none; font-variant-numeric:tabular-nums}
+  .cur-tag{display:flex; align-items:center; padding:0 14px; font-family:var(--mono); font-size:15px; font-weight:600; color:var(--ink-soft); background:var(--surface-2); border-left:1px solid var(--line); flex:none}
+  .seg{display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:7px}
+  .seg.small{grid-template-columns:1fr 1fr}
+  .seg button{min-width:0; cursor:pointer; font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--ink-soft);
+    background:var(--surface-3); border:1px solid var(--line); border-radius:10px; padding:9px 6px; min-height:50px; transition:all .14s; line-height:1.2; text-align:center; overflow:hidden}
+  .seg button .cc{font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); display:block; margin-top:2px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .seg button:hover{border-color:var(--accent); color:var(--ink)}
+  .seg button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+  .seg button[aria-pressed="true"] .cc{color:rgba(255,255,255,.72)}
+  .seg button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  .res-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:4px 2px 10px}
+  .res-head h2{font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); margin:0; font-weight:600}
+  .res-head .cnt{font-size:12px; color:var(--ink-faint); font-family:var(--mono); white-space:nowrap}
+  .results{display:flex; flex-direction:column; gap:12px; margin-bottom:8px}
+
+  .card{position:relative; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 16px 15px 19px; box-shadow:var(--shadow); overflow:hidden}
+  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev)}
+  .card.best{border-color:color-mix(in srgb,var(--sev) 55%,var(--line))}
+  .card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .route-name{font-size:15px; font-weight:650; letter-spacing:-.01em; margin:0 0 3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
+  .best-badge{font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--sev); background:color-mix(in srgb,var(--sev) 15%,transparent); padding:2px 7px; border-radius:5px; white-space:nowrap}
+  .rate-line{font-size:12px; color:var(--ink-soft); font-family:var(--mono); font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
+  .amounts{text-align:right; white-space:nowrap; margin-left:auto}
+  .out{font-family:var(--mono); font-size:20px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; line-height:1.1}
+  .lost{font-size:12px; font-family:var(--mono); margin-top:3px; font-variant-numeric:tabular-nums; color:var(--ink-faint)}
+  .lost.gainc{color:var(--gain)}
+  .meter{display:flex; align-items:center; gap:12px; margin-top:13px}
+  .loss-pill{font-family:var(--mono); font-weight:700; font-size:13px; font-variant-numeric:tabular-nums; color:var(--sev); background:var(--sev-bg); padding:4px 9px; border-radius:7px; white-space:nowrap; min-width:60px; text-align:center}
+  .bar{flex:1; height:6px; border-radius:4px; background:var(--surface-2); overflow:hidden}
+  .bar i{display:block; height:100%; background:var(--sev); border-radius:4px; transition:width .35s cubic-bezier(.2,.7,.2,1)}
+  .steps{display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--line-soft)}
+  .steps .st{font-size:11.5px; font-family:var(--mono); color:var(--ink-soft); background:var(--surface-3); border:1px solid var(--line-soft); padding:3px 8px; border-radius:6px; white-space:nowrap}
+  .steps .arr{color:var(--ink-faint); font-size:11px}
+
+  details.rates{margin-top:20px; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden}
+  details.rates summary{cursor:pointer; padding:15px 18px; font-weight:600; font-size:14px; display:flex; align-items:center; gap:9px; list-style:none; user-select:none}
+  details.rates summary::-webkit-details-marker{display:none}
+  details.rates summary::before{content:"▸"; color:var(--ink-faint); transition:transform .2s; font-size:11px}
+  details.rates[open] summary::before{transform:rotate(90deg)}
+  details.rates summary .hint{color:var(--ink-faint); font-weight:400; font-size:12.5px}
+  .rgroup{padding:2px 18px 6px}
+  .rgroup h3{font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin:14px 0 8px}
+  .rnote{font-size:11.5px; color:var(--ink-faint); margin:8px 0 2px; line-height:1.4}
+  .rates-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+  .rate-field label{display:block; font-size:11px; color:var(--ink-soft); font-weight:600; margin-bottom:5px}
+  .rate-field input{width:100%; border:1px solid var(--line); background:var(--surface-3); color:var(--ink); font-family:var(--mono); font-size:14px; font-weight:600; padding:8px 10px; border-radius:9px; outline:none; font-variant-numeric:tabular-nums}
+  .rate-field input:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .rates-foot{display:flex; justify-content:flex-end; padding:14px 18px 18px}
+  .reset{cursor:pointer; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--accent); background:transparent; border:1px solid var(--line); border-radius:9px; padding:8px 14px}
+  .reset:hover{background:var(--accent-soft); border-color:var(--accent)}
+
+  footer{margin-top:24px; padding:18px 20px; background:var(--surface-3); border:1px solid var(--line-soft); border-radius:14px}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px}
+  .legend span{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft); font-family:var(--mono)}
+  .legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .note{font-size:13px; color:var(--ink-soft); margin:0; line-height:1.5}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Калькулятор переводов</h1>
+  </header>
+
+  <div class="ratebar">
+    <span class="rb-rates" id="rbRates"></span>
+    <button type="button" id="refreshBtn">🔄 Обновить курс</button>
+    <span class="rb-status" id="rateStatus"></span>
+  </div>
+
+  <section class="controls">
+    <div class="row2">
+      <div>
+        <label class="lbl" for="amount">Сумма</label>
+        <div class="amount-row">
+          <input id="amount" type="number" inputmode="decimal" min="0" value="2000" aria-label="Сумма">
+          <span class="cur-tag" id="fromSym">€</span>
+        </div>
+      </div>
+      <div>
+        <label class="lbl">День недели</label>
+        <div class="seg small" id="wkSeg" role="group" aria-label="День недели"></div>
+      </div>
+    </div>
+    <div>
+      <label class="lbl">У меня есть</label>
+      <div class="seg" id="fromSeg" role="group" aria-label="Исходный актив"></div>
+    </div>
+    <div>
+      <label class="lbl">Хочу получить</label>
+      <div class="seg" id="toSeg" role="group" aria-label="Цель"></div>
+    </div>
+  </section>
+
+  <div class="res-head">
+    <h2 id="resTitle">Маршруты</h2>
+    <span class="cnt" id="resCnt"></span>
+  </div>
+  <section class="results" id="results"></section>
+
+  <details class="rates">
+    <summary>Курсы и комиссии <span class="hint">— мировой курс тянется сам</span></summary>
+    <div id="ratesBody"></div>
+    <div class="rates-foot"><button class="reset" type="button" id="resetBtn">Сбросить</button></div>
+  </details>
+
+  <footer>
+    <div class="legend">
+      <span><i style="background:var(--gain)"></i>выгодно</span>
+      <span><i style="background:var(--ok)"></i>средне</span>
+      <span><i style="background:var(--bad)"></i>дорого</span>
+    </div>
+    <p class="note">Выбери, что у тебя есть и что хочешь получить — маршруты встанут от самого выгодного к самому дорогому. У каждого способа зафиксирован его процент комиссии к мировому курсу; сам курс подтягивается живым, поэтому сумма всегда актуальна.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CUR = {
+    RUB: {sym:"₽",   dp:0, name:"рубли",  short:"Рубли",   code:"₽"},
+    HUF: {sym:"Ft",  dp:0, name:"форинты",short:"Форинты", code:"Ft"},
+    EUR: {sym:"€",   dp:2, name:"евро",   short:"Евро",    code:"€"},
+    EURC:{sym:"€",   dp:2, name:"евро",   short:"Евро нал",code:"€ нал"},
+    USDT:{sym:"USDT",dp:2, name:"USDT",   short:"USDT",    code:"USDT"}
+  };
+
+  // World rates (auto-fetched) + fixed deviations (%, + = favorable, − = cost)
+  var DEF = {
+    eu:1.1557, eh:366, ur:81.41,
+    exch:4.62, altynIn:0.20, ntCard:-5.54, ntRU:-4.52, aRU:-5.23,
+    cash:2.45, pEU:-2.01, sUE:-0.70,
+    acRH:-7.15, aRE:-5.97, wEH:-0.70, wHE:-1.30, fEH:-3.10, otp:-4.90,
+    revWk:-0.60, revWe:-1.60
+  };
+
+  var WORLD = [["eu","1 € = $ (EUR/USD)","0.0001"],["eh","1 € = Ft (EUR/HUF)","0.1"],["ur","1 $ = ₽ (USD/RUB)","0.01"]];
+  var DGROUPS = [
+    {title:"USDT ↔ рубли  (%, + выгода / − потеря)", items:[["exch","обменник в РФ USDT→₽"],["altynIn","Altyn USDT→₽"],["ntCard","Antarctic→карта USDT→₽"],["ntRU","Antarctic ₽→USDT"],["aRU","Altyn ₽→USDT"]]},
+    {title:"EUR ↔ USDT  (%)", items:[["cash","нал EUR→USDT"],["pEU","P2P EUR→USDT"],["sUE","USDT→EUR"]]},
+    {title:"Карты  (%)", items:[["acRH","Altyn ₽→Ft"],["aRE","Altyn ₽→EUR"],["wEH","Wise EUR→Ft"],["wHE","Wise Ft→EUR"],["fEH","Freedom EUR→Ft"],["otp","OTP внутр Ft→EUR"]]},
+    {title:"Revolut  (%)", items:[["revWk","будни"],["revWe","выходные"]]}
+  ];
+
+  function af(x){ return 1 + x/100; }
+  function er(R){ return R.ur*R.eu; }
+  function rev(R,wk){ return af(wk ? R.revWe : R.revWk); }
+
+  var ROUTES = [
+    {f:"RUB",t:"HUF",label:"Altyn-карта напрямую",steps:["Altyn-карта"],m:function(R){return (R.eh/er(R))*af(R.acRH);}},
+    {f:"RUB",t:"HUF",label:"Antarctic → USDT → EUR → HUF",steps:["Antarctic","USDT","EUR","Revolut→Ft"],m:function(R,wk){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
+    {f:"RUB",t:"HUF",label:"Altyn-крипта → USDT → EUR → HUF",steps:["Altyn","USDT","EUR","Revolut→Ft"],m:function(R,wk){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
+    {f:"RUB",t:"EUR",label:"Altyn → Freedom (евросчёт)",steps:["Altyn","Freedom €"],m:function(R){return (1/er(R))*af(R.aRE);}},
+    {f:"RUB",t:"EUR",label:"Antarctic → USDT → EUR",steps:["Antarctic","USDT","EUR"],m:function(R){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE);}},
+    {f:"RUB",t:"EUR",label:"Altyn-крипта → USDT → EUR",steps:["Altyn","USDT","EUR"],m:function(R){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE);}},
+    {f:"RUB",t:"USDT",label:"Antarctic (пополнение)",steps:["Antarctic ₽→USDT"],m:function(R){return (1/R.ur)*af(R.ntRU);}},
+    {f:"RUB",t:"USDT",label:"Altyn (вывод в крипту)",steps:["Altyn ₽→USDT"],m:function(R){return (1/R.ur)*af(R.aRU);}},
+    {f:"HUF",t:"HUF",label:"OTP-карта напрямую",steps:["OTP-карта"],m:function(){return 1;}},
+    {f:"HUF",t:"EUR",label:"OTP → Revolut → конвертация",steps:["OTP ₽0","Revolut Ft→€"],m:function(R,wk){return (1/R.eh)*rev(R,wk);}},
+    {f:"HUF",t:"EUR",label:"OTP → Wise → конвертация",steps:["OTP ₽0","Wise Ft→€"],m:function(R){return (1/R.eh)*af(R.wHE);}},
+    {f:"HUF",t:"EUR",label:"Конвертация внутри OTP",steps:["OTP Ft→€"],m:function(R){return (1/R.eh)*af(R.otp);}},
+    {f:"HUF",t:"RUB",label:"Revolut → P2P → обменник в РФ",exch:true,steps:["Revolut Ft→€","P2P €→USDT","обменник РФ"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    {f:"HUF",t:"RUB",label:"Revolut → P2P → Altyn",steps:["Revolut","P2P","Altyn"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
+    {f:"HUF",t:"RUB",label:"Wise → P2P → обменник в РФ",exch:true,steps:["Wise Ft→€","P2P","обменник РФ"],m:function(R){return (1/R.eh)*af(R.wHE)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    {f:"EUR",t:"EUR",label:"Freedom / Wise / Revolut — трата в €",steps:["карта в €"],m:function(){return 1;}},
+    {f:"EUR",t:"HUF",label:"Revolut EUR→HUF",steps:["Revolut"],m:function(R,wk){return R.eh*rev(R,wk);}},
+    {f:"EUR",t:"HUF",label:"Wise EUR→HUF",steps:["Wise"],m:function(R){return R.eh*af(R.wEH);}},
+    {f:"EUR",t:"HUF",label:"Freedom EUR→HUF (двойная)",steps:["Freedom €→$→Ft"],m:function(R){return R.eh*af(R.fEH);}},
+    {f:"EUR",t:"RUB",label:"P2P → USDT → обменник в РФ",exch:true,steps:["P2P €→USDT","обменник РФ"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.exch);}},
+    {f:"EUR",t:"RUB",label:"P2P → USDT → Altyn",steps:["P2P","Altyn"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
+    {f:"EUR",t:"USDT",label:"P2P (обмен на USDT)",steps:["P2P €→USDT"],m:function(R){return R.eu*af(R.pEU);}},
+    {f:"EURC",t:"RUB",label:"Наличка → USDT → обменник в РФ",exch:true,steps:["обменник €→USDT","обменник РФ"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.exch);}},
+    {f:"EURC",t:"RUB",label:"Наличка → USDT → Altyn",steps:["обменник €→USDT","Altyn"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.altynIn);}},
+    {f:"EURC",t:"USDT",label:"Наличка → USDT (обменник)",steps:["обменник €→USDT"],m:function(R){return R.eu*af(R.cash);}},
+    {f:"USDT",t:"RUB",label:"Обменник в РФ",exch:true,steps:["обменник РФ USDT→₽"],m:function(R){return R.ur*af(R.exch);}},
+    {f:"USDT",t:"RUB",label:"Altyn (ввод)",steps:["Altyn USDT→₽"],m:function(R){return R.ur*af(R.altynIn);}},
+    {f:"USDT",t:"RUB",label:"Antarctic → карта",steps:["Antarctic→карта"],m:function(R){return R.ur*af(R.ntCard);}},
+    {f:"USDT",t:"EUR",label:"Продажа USDT за евро",steps:["обменник/биржа"],m:function(R){return (1/R.eu)*af(R.sUE);}},
+    {f:"USDT",t:"HUF",label:"USDT → EUR → HUF (Revolut)",steps:["→ EUR","Revolut→Ft"],m:function(R,wk){return (1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}}
+  ];
+
+  var TARGETS = { RUB:["HUF","EUR","USDT"], HUF:["HUF","EUR","RUB"], EUR:["EUR","HUF","RUB","USDT"], EURC:["RUB","USDT"], USDT:["RUB","EUR","HUF"] };
+  var DEFTGT = { RUB:"HUF", HUF:"EUR", EUR:"RUB", EURC:"RUB", USDT:"RUB" };
+  var FROMS = ["RUB","HUF","EUR","EURC","USDT"];
+  // обменник в РФ принимает только суммы от ~200 000 ₽ — ниже порога его маршруты скрываются
+  var MIN_EXCH = { HUF:800000, EUR:2000, EURC:2000, USDT:2200 };
+
+  var state = { amount:2000, from:"EUR", to:"RUB", weekend:false, R:Object.assign({},DEF) };
+
+  var nfc={};
+  function fmt(v,c){ var dp=CUR[c].dp; if(!nfc[c]) nfc[c]=new Intl.NumberFormat("ru-RU",{minimumFractionDigits:dp,maximumFractionDigits:dp}); return nfc[c].format(v)+" "+CUR[c].sym; }
+  function fmtRate(x){ var d=x>=100?1:x>=10?2:x>=1?3:4; return new Intl.NumberFormat("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}).format(x); }
+  function valEUR(c,R){ if(c==="EUR"||c==="EURC")return 1; if(c==="HUF")return 1/R.eh; if(c==="RUB")return 1/er(R); if(c==="USDT")return 1/R.eu; return 1; }
+  function marketMult(f,t,R){ return valEUR(f,R)/valEUR(t,R); }
+  function sev(delta){ if(delta>=-0.02)return{c:"var(--gain)",bg:"var(--gain-bg)"}; if(delta>=-0.05)return{c:"var(--ok)",bg:"var(--ok-bg)"}; return{c:"var(--bad)",bg:"var(--bad-bg)"}; }
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+
+  function buildWk(){
+    var box=document.getElementById("wkSeg"); box.innerHTML="";
+    [["Будни",false],["Выходные",true]].forEach(function(o){
+      var b=document.createElement("button"); b.type="button"; b.textContent=o[0]; b.setAttribute("aria-pressed",state.weekend===o[1]);
+      b.addEventListener("click",function(){state.weekend=o[1]; buildWk(); render();}); box.appendChild(b);
+    });
+  }
+  function buildFrom(){
+    var box=document.getElementById("fromSeg"); box.innerHTML="";
+    FROMS.forEach(function(c){
+      var b=document.createElement("button"); b.type="button"; b.setAttribute("aria-pressed",state.from===c);
+      b.innerHTML=CUR[c].short+'<span class="cc">'+CUR[c].code+"</span>";
+      b.addEventListener("click",function(){ if(state.from===c)return; state.from=c;
+        if(TARGETS[c].indexOf(state.to)<0) state.to=DEFTGT[c];
+        document.getElementById("fromSym").textContent=CUR[c].sym; buildFrom(); buildTo(); render(); });
+      box.appendChild(b);
+    });
+  }
+  function buildTo(){
+    var box=document.getElementById("toSeg"); box.innerHTML="";
+    TARGETS[state.from].forEach(function(c){
+      var b=document.createElement("button"); b.type="button"; b.setAttribute("aria-pressed",state.to===c);
+      var lbl=(c===state.from)?"Потратить":("В "+CUR[c].name);
+      b.innerHTML=lbl+'<span class="cc">'+(state.from==="EURC"?"€ нал":state.from)+" → "+c+"</span>";
+      b.addEventListener("click",function(){ if(state.to===c)return; state.to=c; buildTo(); render(); });
+      box.appendChild(b);
+    });
+  }
+
+  function buildRates(){
+    var body=document.getElementById("ratesBody"); body.innerHTML="";
+    var wg=el("div","rgroup"); wg.appendChild(el("h3",null,"Мировой курс (тянется автоматически)"));
+    var wgrid=el("div","rates-grid");
+    WORLD.forEach(function(it){
+      var f=el("div","rate-field"); var lab=el("label",null,it[1]); lab.setAttribute("for","r_"+it[0]);
+      var inp=document.createElement("input"); inp.type="number"; inp.id="r_"+it[0]; inp.value=state.R[it[0]]; inp.step=it[2];
+      inp.addEventListener("input",function(){var v=parseFloat(inp.value); if(!isNaN(v)&&v>0){state.R[it[0]]=v; render();}});
+      f.appendChild(lab); f.appendChild(inp); wgrid.appendChild(f);
+    });
+    wg.appendChild(wgrid); wg.appendChild(el("p","rnote","USD/₽ у бесплатных источников бывает неточным — если выглядит странно, впиши курс ЦБ вручную.")); body.appendChild(wg);
+    DGROUPS.forEach(function(g){
+      var wrap=el("div","rgroup"); wrap.appendChild(el("h3",null,g.title));
+      var grid=el("div","rates-grid");
+      g.items.forEach(function(it){
+        var f=el("div","rate-field"); var lab=el("label",null,it[1]); lab.setAttribute("for","r_"+it[0]);
+        var inp=document.createElement("input"); inp.type="number"; inp.id="r_"+it[0]; inp.value=state.R[it[0]]; inp.step="0.1";
+        inp.addEventListener("input",function(){var v=parseFloat(inp.value); if(!isNaN(v)){state.R[it[0]]=v; render();}});
+        f.appendChild(lab); f.appendChild(inp); grid.appendChild(f);
+      });
+      wrap.appendChild(grid); body.appendChild(wrap);
+    });
+  }
+  function syncRateInputs(){ Object.keys(DEF).forEach(function(k){ var e=document.getElementById("r_"+k); if(e) e.value=state.R[k]; }); }
+  function updateBar(){ var R=state.R; document.getElementById("rbRates").innerHTML="1 € = <b>"+fmtRate(R.eu)+"</b> $ · 1 € = <b>"+fmtRate(R.eh)+"</b> Ft · 1 $ = <b>"+fmtRate(R.ur)+"</b> ₽"; }
+
+  function render(){
+    var R=state.R, amt=state.amount, f=state.from, t=state.to, wk=state.weekend;
+    var mkt=marketMult(f,t,R);
+    var list=ROUTES.filter(function(x){return x.f===f&&x.t===t&&!(x.exch&&amt<(MIN_EXCH[f]||0));}).map(function(x){return {r:x,mult:x.m(R,wk)};}).sort(function(a,b){return b.mult-a.mult;});
+    document.getElementById("resTitle").textContent=(t===f?"Трата в "+CUR[t].name:"Перевод в "+CUR[t].name);
+    var n=list.length; document.getElementById("resCnt").textContent=n+(n===1?" способ":(n>=2&&n<=4?" способа":" способов"));
+    var bestMult=list.length?list[0].mult:1;
+    var results=document.getElementById("results"); results.innerHTML="";
+    var marketOut=amt*mkt;
+    list.forEach(function(item,i){
+      var rt=item.r, mult=item.mult, out=amt*mult, delta=mult/mkt-1, diff=out-marketOut, s=sev(delta);
+      var card=el("div","card"+(i===0&&list.length>1?" best":"")); card.style.setProperty("--sev",s.c); card.style.setProperty("--sev-bg",s.bg);
+      var top=el("div","card-top"); var left=el("div");
+      var name=el("div","route-name"); name.appendChild(document.createTextNode(rt.label));
+      if(i===0&&list.length>1) name.appendChild(el("span","best-badge","лучший"));
+      left.appendChild(name);
+      var rl=el("div","rate-line");
+      if(f===t){ rl.textContent="1:1 · по рынку"; }
+      else { var line,mline; if(mult>=1){line="1 "+CUR[f].sym+" = "+fmtRate(mult)+" "+CUR[t].sym; mline=fmtRate(mkt);} else {line="1 "+CUR[t].sym+" = "+fmtRate(1/mult)+" "+CUR[f].sym; mline=fmtRate(1/mkt);} rl.textContent=line+"  ·  рынок "+mline; }
+      left.appendChild(rl); top.appendChild(left);
+      var am=el("div","amounts"); am.appendChild(el("div","out",fmt(out,t)));
+      var lost=el("div","lost");
+      if(f===t || Math.abs(diff)<0.5){ lost.textContent="по рынку"; }
+      else if(diff>0){ lost.className="lost gainc"; lost.textContent="выгода +"+fmt(diff,t); }
+      else { lost.textContent="теряешь "+fmt(-diff,t); }
+      am.appendChild(lost); top.appendChild(am); card.appendChild(top);
+      var meter=el("div","meter"); meter.appendChild(el("div","loss-pill",(delta>=0?"+":"−")+Math.abs(delta*100).toFixed(1).replace(".",",")+"%"));
+      var bar=el("div","bar"); var fill=el("i"); fill.style.width=Math.max(4,Math.min(100,mult/bestMult*100))+"%"; bar.appendChild(fill); meter.appendChild(bar); card.appendChild(meter);
+      var steps=el("div","steps"); rt.steps.forEach(function(st,j){ if(j>0)steps.appendChild(el("span","arr","→")); steps.appendChild(el("span","st",st)); }); card.appendChild(steps);
+      results.appendChild(card);
+    });
+    updateBar();
+  }
+
+  function refreshWorld(){
+    var st=document.getElementById("rateStatus"); st.textContent="обновляю…";
+    fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){
+      if(!j||!j.rates||!j.rates.EUR) throw 0;
+      var E=j.rates.EUR, H=j.rates.HUF, U=j.rates.RUB;
+      state.R.eu=+(1/E).toFixed(4); if(H) state.R.eh=+(H/E).toFixed(2); if(U) state.R.ur=+(U).toFixed(2);
+      ["eu","eh","ur"].forEach(function(k){var e=document.getElementById("r_"+k); if(e)e.value=state.R[k];});
+      var d=j.time_last_update_utc ? new Date(j.time_last_update_utc) : new Date();
+      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); render();
+    }).catch(function(){ st.textContent="авто-курс недоступен — курс можно вписать вручную"; });
+  }
+
+  document.getElementById("amount").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.amount=isNaN(v)?0:v; render();});
+  document.getElementById("refreshBtn").addEventListener("click",refreshWorld);
+  document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); syncRateInputs(); render(); });
+
+  buildWk(); buildFrom(); buildTo(); buildRates(); render(); refreshWorld();
+})();
+</script>
+</body>
+</html>
