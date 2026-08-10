@@ -533,7 +533,7 @@
   }
   function syncRateInputs(){ Object.keys(DEF).forEach(function(k){ var e=document.getElementById("r_"+k); if(e) e.value=state.R[k]; }); }
   function updateBar(){ var R=state.R; document.getElementById("rbRates").innerHTML=
-    '<span class="lbl">1€=</span><b>'+fmtRate(R.eu)+'</b>$ &nbsp;<span class="lbl">1€=</span><b>'+fmtRate(R.eh)+'</b>Ft &nbsp;<span class="lbl">1$=</span><b>'+fmtRate(R.ur)+'</b>₽'; }
+    '<span class="lbl">1€=</span><b>'+fmtRate(er(R))+'</b>₽ &nbsp;<span class="lbl">1€=</span><b>'+fmtRate(R.eh)+'</b>Ft &nbsp;<span class="lbl">1$=</span><b>'+fmtRate(R.ur)+'</b>₽'; }
 
   function render(){
     applyP2P();
