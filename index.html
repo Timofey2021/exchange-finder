@@ -119,6 +119,20 @@
   .reset{cursor:pointer; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--muted); background:transparent; border:1px solid var(--line); border-radius:8px; padding:8px 14px}
   .reset:hover{color:var(--ink); border-color:var(--accent)}
 
+  /* p2p rate callout */
+  .p2p{margin:0 0 30px; background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line)); border-left:3px solid var(--accent); border-radius:11px; padding:15px 16px}
+  .p2p-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:11px}
+  .p2p-head label{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600}
+  .p2p-eff{font-family:var(--mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .p2p-row{display:flex; align-items:center; gap:10px}
+  .p2p-input{display:flex; align-items:baseline; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 12px; flex:1 1 auto; min-width:0}
+  .p2p-input:focus-within{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .p2p-input input{flex:1; min-width:0; width:100%; border:0; background:transparent; color:var(--ink); font-family:var(--mono); font-size:18px; font-weight:700; outline:none; padding:0; font-variant-numeric:tabular-nums}
+  .p2p-unit{font-family:var(--mono); font-size:12px; color:var(--faint); flex:none; white-space:nowrap}
+  .p2p-clear{cursor:pointer; font-family:var(--sans); font-size:12px; font-weight:600; color:var(--muted); background:transparent; border:1px solid var(--line); border-radius:8px; padding:9px 13px; flex:none}
+  .p2p-clear:hover{color:var(--ink); border-color:var(--accent)}
+  .p2p-hint{font-family:var(--sans); font-size:12px; color:var(--muted); line-height:1.5; margin:11px 0 0}
+
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
 </head>
@@ -160,6 +174,21 @@
     </div>
   </section>
 
+  <section class="p2p" id="p2pBox">
+    <div class="p2p-head">
+      <label for="p2pPrice">Курс €→USDT на P2P</label>
+      <span class="p2p-eff" id="p2pEff"></span>
+    </div>
+    <div class="p2p-row">
+      <div class="p2p-input">
+        <input id="p2pPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.95" aria-label="Цена USDT в евро на P2P">
+        <span class="p2p-unit">€ за 1 USDT</span>
+      </div>
+      <button type="button" class="p2p-clear" id="p2pClear">сброс</button>
+    </div>
+    <p class="p2p-hint">💡 Курс P2P скачет — впишите актуальный за 1 USDT для точного расчёта. Необязательно: без него берётся усреднённый ≈ −5,5&nbsp;%.</p>
+  </section>
+
   <div class="res-head">
     <h2 id="resTitle">Маршруты</h2>
     <span class="cnt" id="resCnt"></span>
@@ -188,7 +217,7 @@
   var DEF = {
     eu:1.1561, eh:362.7, ur:82.30,
     exch:4.62, altynIn:-0.15, ntCard:-5.75, ntRU:-3.85, aRU:-4.77,
-    cash:2.45, pEU:-8.90, sUE:-0.70, bybit:-2.30,
+    cash:2.45, pEU:-5.45, sUE:-0.70, bybit:-2.30,
     acRH:-6.15, aRE:-5.97, wEH:-0.70, wHE:-1.30, fEH:-3.10, otp:-4.90,
     revWk:-0.60, revWe:-1.60
   };
@@ -196,7 +225,7 @@
   var WORLD = [["eu","1 € = $ (EUR/USD)","0.0001"],["eh","1 € = Ft (EUR/HUF)","0.1"],["ur","1 $ = ₽ (USD/RUB)","0.01"]];
   var DGROUPS = [
     {title:"USDT ↔ рубли  (%, + выгода / − потеря)", items:[["exch","обменник в РФ USDT→₽"],["altynIn","Altyn USDT→₽"],["ntCard","Antarctic→карта USDT→₽"],["ntRU","Antarctic ₽→USDT"],["aRU","Altyn ₽→USDT"]]},
-    {title:"EUR ↔ USDT  (%)", items:[["cash","наличка €→USDT"],["pEU","криптобиржа €↔USDT (P2P)"],["sUE","USDT→€ на бирже"]]},
+    {title:"EUR ↔ USDT  (%)", items:[["cash","наличка €→USDT"],["sUE","USDT→€ на бирже"]]},
     {title:"Карты  (%)", items:[["bybit","Bybit-карта USDT→Ft"],["acRH","Altyn карта ₽→Ft"],["aRE","Altyn ₽→€ (Freedom)"],["wEH","Wise €→Ft"],["wHE","Wise Ft→€"],["fEH","Freedom €→Ft"],["otp","OTP внутри банка Ft→€"]]},
     {title:"Revolut  (%)", items:[["revWk","будни"],["revWe","выходные"]]}
   ];
@@ -272,7 +301,15 @@
   var FROMS = ["RUB","HUF","EUR","EURC","USDT"];
   var MIN_EXCH = { HUF:800000, EUR:2000, EURC:2000, USDT:2200 };
 
-  var state = { amount:10000, from:"RUB", to:"HUF", weekend:false, R:Object.assign({},DEF) };
+  var state = { amount:10000, from:"RUB", to:"HUF", weekend:false, p2p:null, R:Object.assign({},DEF) };
+
+  // €→USDT P2P: user can type the real price (€ per USDT); we convert it to
+  // the pEU deviation against the live EUR/USD. Empty → averaged default.
+  function applyP2P(){
+    state.R.pEU = (state.p2p!=null) ? (1/(state.p2p*state.R.eu)-1)*100 : DEF.pEU;
+    var d=state.R.pEU, eff=document.getElementById("p2pEff");
+    if(eff) eff.textContent="≈ "+(d>=0?"+":"−")+Math.abs(d).toFixed(1).replace(".",",")+" % к рынку"+(state.p2p==null?" · стандарт":"");
+  }
 
   var nfc={};
   function fmt(v,c){ var dp=CUR[c].dp; if(!nfc[c]) nfc[c]=new Intl.NumberFormat("ru-RU",{minimumFractionDigits:dp,maximumFractionDigits:dp}); return nfc[c].format(v)+" "+CUR[c].sym; }
@@ -339,6 +376,7 @@
     '<span class="lbl">1€=</span><b>'+fmtRate(R.eu)+'</b>$ &nbsp;<span class="lbl">1€=</span><b>'+fmtRate(R.eh)+'</b>Ft &nbsp;<span class="lbl">1$=</span><b>'+fmtRate(R.ur)+'</b>₽'; }
 
   function render(){
+    applyP2P();
     var R=state.R, amt=state.amount, f=state.from, t=state.to, wk=state.weekend;
     var mkt=marketMult(f,t,R);
     var list=ROUTES.filter(function(x){return x.f===f&&x.t===t&&!(x.exch&&amt<(MIN_EXCH[f]||0));}).map(function(x){return {r:x,mult:x.m(R,wk)};}).sort(function(a,b){return b.mult-a.mult;});
@@ -381,7 +419,9 @@
 
   document.getElementById("amount").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.amount=isNaN(v)?0:v; render();});
   document.getElementById("refreshBtn").addEventListener("click",refreshWorld);
-  document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); syncRateInputs(); updateBar(); render(); });
+  document.getElementById("p2pPrice").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2p=(!isNaN(v)&&v>0)?v:null; render();});
+  document.getElementById("p2pClear").addEventListener("click",function(){ state.p2p=null; document.getElementById("p2pPrice").value=""; render(); });
+  document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); state.p2p=null; document.getElementById("p2pPrice").value=""; syncRateInputs(); updateBar(); render(); });
 
   buildWk(); buildFrom(); buildTo(); buildRates(); updateBar(); render(); refreshWorld();
 })();
