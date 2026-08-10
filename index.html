@@ -224,7 +224,6 @@
     <div class="p2p-foot">
       <p class="p2p-hint">💡 P2P скачет, и цена покупки ≠ продажи. Впишите актуальные за 1 USDT. Необязательно — без них берутся усреднённые значения.</p>
       <div class="p2p-btns">
-        <button type="button" class="p2p-clear accent" id="p2pSnap">Сохранить снимок</button>
         <button type="button" class="p2p-clear" id="p2pClear">сброс</button>
       </div>
     </div>
@@ -505,16 +504,15 @@
       state.R.eu=+(1/E).toFixed(4); if(H) state.R.eh=+(H/E).toFixed(2); if(U) state.R.ur=+(U).toFixed(2);
       ["eu","eh","ur"].forEach(function(k){var e=document.getElementById("r_"+k); if(e)e.value=state.R[k];});
       var d=j.time_last_update_utc ? new Date(j.time_last_update_utc) : new Date();
-      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); updateBar(); render();
+      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); updateBar(); render(); snap();
     }).catch(function(){ st.textContent="авто-курс недоступен — курс можно вписать вручную"; });
   }
 
   document.getElementById("amount").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.amount=isNaN(v)?0:v; render();});
   document.getElementById("refreshBtn").addEventListener("click",refreshWorld);
-  document.getElementById("p2pBuy").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pBuy=(!isNaN(v)&&v>0)?v:null; render();});
-  document.getElementById("p2pSell").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pSell=(!isNaN(v)&&v>0)?v:null; render();});
+  document.getElementById("p2pBuy").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pBuy=(!isNaN(v)&&v>0)?v:null; render(); snap();});
+  document.getElementById("p2pSell").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pSell=(!isNaN(v)&&v>0)?v:null; render(); snap();});
   document.getElementById("p2pClear").addEventListener("click",function(){ state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; render(); });
-  document.getElementById("p2pSnap").addEventListener("click",snap);
   document.getElementById("histClear").addEventListener("click",function(){ try{localStorage.removeItem(HKEY);}catch(e){} renderHist(); });
   document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; syncRateInputs(); updateBar(); render(); });
 
