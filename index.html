@@ -381,27 +381,27 @@
     if(a.length>60) a=a.slice(a.length-60);
     hSave(a); renderHist();
   }
-  function sparkSVG(vals){
-    if(vals.length<2) return '<div class="spark-lbl">€ → Ft (рынок) · нужно ≥ 2 снимков для графика</div>';
+  function sparkSVG(vals, label){
+    if(vals.length<2) return '<div class="spark-lbl">'+label+' · нужно ≥ 2 снимков для графика</div>';
     var w=560,h=54,p=5, mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), rng=(mx-mn)||1;
     var pts=vals.map(function(v,i){ return [p+(w-2*p)*i/(vals.length-1), p+(h-2*p)*(1-(v-mn)/rng)]; });
     var line=pts.map(function(q,i){return (i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ");
     var area="M"+pts[0][0].toFixed(1)+" "+(h-p)+" "+pts.map(function(q){return "L"+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ")+" L"+pts[pts.length-1][0].toFixed(1)+" "+(h-p)+" Z";
     var last=pts[pts.length-1];
-    return '<div class="spark-lbl">€ → Ft (рынок): '+vals[0].toFixed(1)+' → '+vals[vals.length-1].toFixed(1)+'</div>'+
+    return '<div class="spark-lbl">'+label+': '+vals[0].toFixed(1)+' → '+vals[vals.length-1].toFixed(1)+'</div>'+
       '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><path class="area" d="'+area+'"/><path class="line" d="'+line+'"/><circle class="dot" cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="2.6"/></svg>';
   }
   function hcell(v,pv,dp){ var arr=""; if(pv!=null){ if(v>pv)arr=' <span class="up">▲</span>'; else if(v<pv)arr=' <span class="down">▼</span>'; } return '<td>'+v.toFixed(dp)+arr+'</td>'; }
-  function hcellP(v){ return '<td>'+(v!=null? (+v).toFixed(2): '—')+'</td>'; }
   function renderHist(){
     var a=hLoad(), body=document.getElementById("histBody"), sb=document.getElementById("sparkBox");
     if(!body) return;
-    if(!a.length){ body.innerHTML='<div class="hist-empty">Пока пусто. Жми «Сохранить снимок» раз в день — и здесь появится динамика курса и таблица.</div>'; if(sb)sb.innerHTML=""; return; }
-    if(sb) sb.innerHTML=sparkSVG(a.map(function(x){return x.eh;}));
+    if(!a.length){ body.innerHTML='<div class="hist-empty">Пока пусто. История заполняется сама — заходи раз в день, и здесь появится движение мирового курса.</div>'; if(sb)sb.innerHTML=""; return; }
+    // world cross-rates: € → ₽ (EUR/RUB = EUR/USD × USD/RUB) and € → Ft (EUR/HUF)
+    if(sb) sb.innerHTML = sparkSVG(a.map(function(x){return x.eu*x.ur;}),"€ → ₽ (рынок)") + sparkSVG(a.map(function(x){return x.eh;}),"€ → Ft (рынок)");
     var rows=a.slice().reverse();
-    var html='<div class="hist-scroll"><table class="htab"><thead><tr><th>Дата</th><th>€/Ft</th><th>$/₽</th><th>P2P куп.</th><th>P2P прод.</th></tr></thead><tbody>';
+    var html='<div class="hist-scroll"><table class="htab"><thead><tr><th>Дата</th><th>€ → ₽</th><th>€ → Ft</th></tr></thead><tbody>';
     rows.forEach(function(x,i){ var pv=rows[i+1];
-      html+='<tr><td>'+x.t.slice(5)+'</td>'+hcell(x.eh, pv&&pv.eh, 1)+hcell(x.ur, pv&&pv.ur, 2)+hcellP(x.buy)+hcellP(x.sell)+'</tr>';
+      html+='<tr><td>'+x.t.slice(5)+'</td>'+hcell(x.eu*x.ur, pv?pv.eu*pv.ur:null, 1)+hcell(x.eh, pv&&pv.eh, 1)+'</tr>';
     });
     body.innerHTML=html+'</tbody></table></div>';
   }
