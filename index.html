@@ -148,6 +148,18 @@
   .spark path.line{fill:none; stroke:var(--accent); stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
   .spark path.area{fill:var(--accent-soft); stroke:none}
   .spark .dot{fill:var(--accent)}
+  /* interactive chart */
+  .chart{margin:2px 0 16px}
+  .chart-lbl{font-family:var(--mono); font-size:11px; color:var(--faint); margin:0 2px 5px}
+  .chart-wrap{position:relative}
+  .chart-wrap svg{display:block; width:100%; height:auto}
+  .chart .grid{stroke:var(--line-soft); stroke-width:1}
+  .chart .axis{fill:var(--faint); font-family:var(--mono); font-size:9px}
+  .chart .aline{fill:none; stroke:var(--accent); stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+  .chart .aarea{fill:var(--accent-soft); stroke:none}
+  .chart .cx-line{stroke:var(--accent); stroke-width:1; stroke-dasharray:3 3; opacity:.6}
+  .chart .cx-dot{fill:var(--accent); stroke:var(--surface); stroke-width:1.5}
+  .chart-tip{position:absolute; top:2px; transform:translateX(-50%); background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; font-weight:600; padding:3px 7px; border-radius:6px; white-space:nowrap; pointer-events:none; z-index:3}
   .hist-scroll{overflow-x:auto}
   .htab{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums}
   .htab th{text-align:right; font-weight:600; color:var(--faint); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap}
@@ -398,26 +410,58 @@
     });
     Promise.all(jobs).then(function(){ hSave(cache); if(st) st.textContent=""; renderHist(); });
   }
-  function sparkSVG(vals, label){
-    if(vals.length<2) return '<div class="spark-lbl">'+label+' · мало данных</div>';
-    var w=560,h=54,p=5, mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), rng=(mx-mn)||1;
-    var pts=vals.map(function(v,i){ return [p+(w-2*p)*i/(vals.length-1), p+(h-2*p)*(1-(v-mn)/rng)]; });
-    var line=pts.map(function(q,i){return (i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ");
-    var area="M"+pts[0][0].toFixed(1)+" "+(h-p)+" "+pts.map(function(q){return "L"+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ")+" L"+pts[pts.length-1][0].toFixed(1)+" "+(h-p)+" Z";
-    var last=pts[pts.length-1], pct=(vals[vals.length-1]/vals[0]-1)*100;
-    var chg=' <span class="'+(pct>=0?"up":"down")+'">'+(pct>=0?"+":"−")+Math.abs(pct).toFixed(1).replace(".",",")+" %</span>";
-    return '<div class="spark-lbl">'+label+': '+vals[0].toFixed(1)+" → "+vals[vals.length-1].toFixed(1)+chg+'</div>'+
-      '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><path class="area" d="'+area+'"/><path class="line" d="'+line+'"/><circle class="dot" cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="2.6"/></svg>';
-  }
   function fmtN(v,dp){ return new Intl.NumberFormat("ru-RU",{minimumFractionDigits:dp,maximumFractionDigits:dp}).format(v); }
+  function fmtDMon(t){ return t.slice(8,10)+"."+t.slice(5,7); }
   function nearestKey(keys, target){ var best=null, bd=Infinity; keys.forEach(function(k){ var dd=Math.abs(new Date(k)-target); if(dd<bd){bd=dd; best=k;} }); return best; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function drawChart(mount, series, label, dp){
+    mount.innerHTML="";
+    var wrap=document.createElement("div"); wrap.className="chart"; mount.appendChild(wrap);
+    if(series.length<2){ wrap.innerHTML='<div class="chart-lbl">'+label+' · мало данных</div>'; return; }
+    var n=series.length, vals=series.map(function(s){return s.v;});
+    var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), rng=(mx-mn)||1, lo=mn-rng*0.10, hi=mx+rng*0.10, r2=(hi-lo)||1;
+    var W=Math.max(240, Math.round(mount.clientWidth||560)), H=150, PADL=6, PADR=6, PADT=8, PADB=20, iW=W-PADL-PADR, iH=H-PADT-PADB;
+    function X(i){ return PADL+iW*i/(n-1); }
+    function Y(v){ return PADT+iH*(1-(v-lo)/r2); }
+    var linePts=series.map(function(s,i){return (i?"L":"M")+X(i).toFixed(1)+" "+Y(s.v).toFixed(1);}).join(" ");
+    var area="M"+X(0).toFixed(1)+" "+(PADT+iH)+" "+series.map(function(s,i){return "L"+X(i).toFixed(1)+" "+Y(s.v).toFixed(1);}).join(" ")+" L"+X(n-1).toFixed(1)+" "+(PADT+iH)+" Z";
+    var grid="", ylab="";
+    [mx,(mx+mn)/2,mn].forEach(function(gv){ var gy=Y(gv);
+      grid+='<line class="grid" x1="'+PADL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-PADR)+'" y2="'+gy.toFixed(1)+'"/>';
+      ylab+='<text class="axis" x="'+(PADL+2)+'" y="'+(gy-3).toFixed(1)+'">'+fmtN(gv,dp)+'</text>';
+    });
+    var step=Math.max(1,Math.ceil((n-1)/5)), xlab="";
+    for(var i=0;i<n-1;i+=step){ xlab+='<text class="axis" text-anchor="'+(i===0?"start":"middle")+'" x="'+X(i).toFixed(1)+'" y="'+(H-6)+'">'+fmtDMon(series[i].t)+'</text>'; }
+    xlab+='<text class="axis" text-anchor="end" x="'+X(n-1).toFixed(1)+'" y="'+(H-6)+'">'+fmtDMon(series[n-1].t)+'</text>';
+    var pct=(vals[n-1]/vals[0]-1)*100, chg=' <span class="'+(pct>=0?"up":"down")+'">'+(pct>=0?"+":"−")+Math.abs(pct).toFixed(1).replace(".",",")+" %</span>";
+    wrap.innerHTML=
+      '<div class="chart-lbl">'+label+chg+'</div>'+
+      '<div class="chart-wrap"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
+        grid+'<path class="aarea" d="'+area+'"/><path class="aline" d="'+linePts+'"/>'+ylab+xlab+
+        '<circle class="cx-dot" cx="'+X(n-1).toFixed(1)+'" cy="'+Y(vals[n-1]).toFixed(1)+'" r="3"/>'+
+        '<g class="cx" style="display:none"><line class="cx-line" x1="0" y1="'+PADT+'" x2="0" y2="'+(PADT+iH)+'"/><circle class="cx-dot" r="3.4"/></g>'+
+        '<rect class="ov" x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent"/>'+
+      '</svg><div class="chart-tip" hidden></div></div>';
+    var svg=wrap.querySelector("svg"), cx=wrap.querySelector(".cx"), cxLine=cx.querySelector("line"), cxDot=cx.querySelector("circle"), ov=wrap.querySelector(".ov"), tip=wrap.querySelector(".chart-tip");
+    function move(e){
+      var r=svg.getBoundingClientRect(); if(!r.width) return;
+      var fx=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)), i=Math.round(fx*(n-1)), px=X(i);
+      cxLine.setAttribute("x1",px); cxLine.setAttribute("x2",px); cxDot.setAttribute("cx",px); cxDot.setAttribute("cy",Y(vals[i]));
+      cx.style.display=""; tip.hidden=false; tip.textContent=fmtDMon(series[i].t)+" · "+fmtN(vals[i],dp);
+      tip.style.left=Math.max(7,Math.min(93,px/W*100))+"%";
+    }
+    function leave(){ cx.style.display="none"; tip.hidden=true; }
+    ov.addEventListener("pointermove",move); ov.addEventListener("pointerdown",move); ov.addEventListener("pointerleave",leave);
+  }
   function renderHist(){
     var cache=hLoad(), keys=Object.keys(cache).sort(), sb=document.getElementById("sparkBox"), body=document.getElementById("histBody");
     if(!body) return;
     if(keys.length<2){ body.innerHTML='<div class="hist-empty">История курса ЦБ подгрузится за пару секунд… Если не появилась — нажми «Обновить».</div>'; if(sb)sb.innerHTML=""; return; }
-    var er=keys.map(function(k){return cache[k].er;});
-    var eh=keys.filter(function(k){return cache[k].eh!=null;}).map(function(k){return cache[k].eh;});
-    if(sb) sb.innerHTML = sparkSVG(er,"€ → ₽ (ЦБ)") + sparkSVG(eh,"€ → Ft (ЦБ)");
+    if(sb){ sb.innerHTML="";
+      var b1=document.createElement("div"), b2=document.createElement("div"); sb.appendChild(b1); sb.appendChild(b2);
+      drawChart(b1, keys.map(function(k){return {t:k, v:cache[k].er};}), "€ → ₽ (ЦБ)", 1);
+      drawChart(b2, keys.filter(function(k){return cache[k].eh!=null;}).map(function(k){return {t:k, v:cache[k].eh};}), "€ → Ft (ЦБ)", 1);
+    }
     var today=new Date();
     var refs=[["сейчас",0],["−1 нед",7],["−1 мес",30],["−3 мес",90]];
     var html='<div class="hist-scroll"><table class="htab"><thead><tr><th>Период</th><th>€ → ₽</th><th>€ → Ft</th></tr></thead><tbody>';
@@ -539,6 +583,8 @@
   document.getElementById("p2pSell").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pSell=(!isNaN(v)&&v>0)?v:null; render();});
   document.getElementById("p2pClear").addEventListener("click",function(){ state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; render(); });
   document.getElementById("histClear").addEventListener("click",function(){ try{localStorage.removeItem(HKEY);}catch(e){} renderHist(); backfill(); });
+  document.querySelector("details.hist").addEventListener("toggle",function(){ if(this.open) renderHist(); });
+  var _rzt; window.addEventListener("resize",function(){ clearTimeout(_rzt); _rzt=setTimeout(renderHist,150); });
   document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; syncRateInputs(); updateBar(); render(); });
 
   buildWk(); buildFrom(); buildTo(); buildRates(); updateBar(); render(); renderHist(); backfill(); refreshWorld();
