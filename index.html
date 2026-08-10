@@ -205,42 +205,67 @@
   function er(R){ return R.ur*R.eu; }
   function rev(R,wk){ return af(wk ? R.revWe : R.revWk); }
 
-  var ROUTES = [
-    {f:"RUB",t:"HUF",label:"Altyn-карта напрямую",steps:["Altyn: карта платит в Ft"],m:function(R){return (R.eh/er(R))*af(R.acRH);}},
-    {f:"RUB",t:"HUF",label:"Antarctic → Bybit-карта",steps:["Antarctic: ₽→USDT","Bybit: карта платит в Ft"],m:function(R){return (1/R.ur)*af(R.ntRU)*(R.eh/R.eu)*af(R.bybit);}},
-    {f:"RUB",t:"HUF",label:"Altyn-крипта → Bybit-карта",steps:["Altyn: ₽→USDT (крипта)","Bybit: карта платит в Ft"],m:function(R){return (1/R.ur)*af(R.aRU)*(R.eh/R.eu)*af(R.bybit);}},
-    {f:"RUB",t:"HUF",label:"Antarctic → биржа → Revolut",steps:["Antarctic: ₽→USDT","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
-    {f:"RUB",t:"HUF",label:"Altyn-крипта → биржа → Revolut",steps:["Altyn: ₽→USDT (крипта)","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
-    {f:"RUB",t:"EUR",label:"Altyn → Freedom (евросчёт)",steps:["Altyn: ₽ → на евросчёт Freedom"],m:function(R){return (1/er(R))*af(R.aRE);}},
-    {f:"RUB",t:"EUR",label:"Antarctic → биржа",steps:["Antarctic: ₽→USDT","Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE);}},
-    {f:"RUB",t:"EUR",label:"Altyn-крипта → биржа",steps:["Altyn: ₽→USDT (крипта)","Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE);}},
-    {f:"RUB",t:"USDT",label:"Antarctic (пополнение)",steps:["Antarctic: ₽→USDT"],m:function(R){return (1/R.ur)*af(R.ntRU);}},
-    {f:"RUB",t:"USDT",label:"Altyn (вывод в крипту)",steps:["Altyn: ₽→USDT (крипта)"],m:function(R){return (1/R.ur)*af(R.aRU);}},
-    {f:"HUF",t:"HUF",label:"OTP-карта напрямую",steps:["OTP: платишь картой в Ft"],m:function(){return 1;}},
-    {f:"HUF",t:"EUR",label:"OTP → Revolut",steps:["OTP → Revolut: Ft (бесплатно)","Revolut: Ft→€"],m:function(R,wk){return (1/R.eh)*rev(R,wk);}},
-    {f:"HUF",t:"EUR",label:"OTP → Wise",steps:["OTP → Wise: Ft (бесплатно)","Wise: Ft→€"],m:function(R){return (1/R.eh)*af(R.wHE);}},
-    {f:"HUF",t:"EUR",label:"Конвертация внутри OTP",steps:["OTP: Ft→€ внутри банка"],m:function(R){return (1/R.eh)*af(R.otp);}},
-    {f:"HUF",t:"RUB",label:"Revolut → биржа → обменник РФ",exch:true,steps:["Revolut: Ft→€","Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"HUF",t:"RUB",label:"Revolut → биржа → Altyn",steps:["Revolut: Ft→€","Криптобиржа: €→USDT (P2P)","Altyn: USDT→₽"],m:function(R,wk){return (1/R.eh)*rev(R,wk)*R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
-    {f:"HUF",t:"RUB",label:"Wise → биржа → обменник РФ",exch:true,steps:["Wise: Ft→€","Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R){return (1/R.eh)*af(R.wHE)*R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"EUR",t:"EUR",label:"Трата в евро (Freedom / Wise / Revolut)",steps:["Платишь картой в €"],m:function(){return 1;}},
-    {f:"EUR",t:"HUF",label:"Revolut",steps:["Revolut: €→Ft"],m:function(R,wk){return R.eh*rev(R,wk);}},
-    {f:"EUR",t:"HUF",label:"Wise",steps:["Wise: €→Ft"],m:function(R){return R.eh*af(R.wEH);}},
-    {f:"EUR",t:"HUF",label:"Freedom (двойная конвертация)",steps:["Freedom: €→$→Ft"],m:function(R){return R.eh*af(R.fEH);}},
-    {f:"EUR",t:"HUF",label:"P2P → Bybit-карта",steps:["Криптобиржа: €→USDT (P2P)","Bybit: карта платит в Ft"],m:function(R){return R.eu*af(R.pEU)*(R.eh/R.eu)*af(R.bybit);}},
-    {f:"EUR",t:"RUB",label:"Биржа → обменник в РФ",exch:true,steps:["Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.exch);}},
-    {f:"EUR",t:"RUB",label:"Биржа → Altyn",steps:["Криптобиржа: €→USDT (P2P)","Altyn: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
-    {f:"EUR",t:"USDT",label:"Криптобиржа (P2P)",steps:["Криптобиржа: €→USDT (P2P)"],m:function(R){return R.eu*af(R.pEU);}},
-    {f:"EURC",t:"RUB",label:"Наличный обменник → обменник в РФ",exch:true,steps:["Обменник: наличка €→USDT","Обменник в РФ: USDT→₽"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.exch);}},
-    {f:"EURC",t:"RUB",label:"Наличный обменник → Altyn",steps:["Обменник: наличка €→USDT","Altyn: USDT→₽"],m:function(R){return R.eu*af(R.cash)*R.ur*af(R.altynIn);}},
-    {f:"EURC",t:"USDT",label:"Наличный обменник",steps:["Обменник: наличка €→USDT"],m:function(R){return R.eu*af(R.cash);}},
-    {f:"USDT",t:"RUB",label:"Обменник в РФ",exch:true,steps:["Обменник в РФ: USDT→₽"],m:function(R){return R.ur*af(R.exch);}},
-    {f:"USDT",t:"RUB",label:"Altyn (завести и продать)",steps:["Altyn: USDT→₽"],m:function(R){return R.ur*af(R.altynIn);}},
-    {f:"USDT",t:"RUB",label:"Antarctic на карту",steps:["Antarctic: USDT→₽ на карту РФ"],m:function(R){return R.ur*af(R.ntCard);}},
-    {f:"USDT",t:"EUR",label:"Криптобиржа (P2P)",steps:["Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.eu)*af(R.sUE);}},
-    {f:"USDT",t:"HUF",label:"Bybit-карта напрямую",steps:["Bybit: карта платит в Ft"],m:function(R){return (R.eh/R.eu)*af(R.bybit);}},
-    {f:"USDT",t:"HUF",label:"Биржа → Revolut",steps:["Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}}
+  // ---- Legs (directed hops). Routes are generated as every simple path
+  // from source to target that transits ONLY through the hubs EUR / USDT
+  // (you never route THROUGH rubles or forints — those are only ends). ----
+  var HUB = { EUR:1, USDT:1 };
+  var LEG = [
+    {f:"RUB", t:"USDT", via:"Antarctic",        step:"Antarctic: ₽→USDT",             m:function(R){return (1/R.ur)*af(R.ntRU);}},
+    {f:"RUB", t:"USDT", via:"Altyn-крипта",     step:"Altyn: ₽→USDT (крипта)",        m:function(R){return (1/R.ur)*af(R.aRU);}},
+    {f:"USDT",t:"RUB",  via:"обменник в РФ",    step:"Обменник в РФ: USDT→₽",          m:function(R){return R.ur*af(R.exch);}, exch:true},
+    {f:"USDT",t:"RUB",  via:"Altyn",            step:"Altyn: USDT→₽",                 m:function(R){return R.ur*af(R.altynIn);}},
+    {f:"USDT",t:"RUB",  via:"Antarctic",        step:"Antarctic: USDT→₽ на карту РФ",  m:function(R){return R.ur*af(R.ntCard);}},
+    {f:"EUR", t:"USDT", via:"криптобиржа",      step:"Криптобиржа: €→USDT (P2P)",      m:function(R){return R.eu*af(R.pEU);}},
+    {f:"USDT",t:"EUR",  via:"криптобиржа",      step:"Криптобиржа: USDT→€ (P2P)",      m:function(R){return (1/R.eu)*af(R.sUE);}},
+    {f:"EURC",t:"USDT", via:"наличный обменник",step:"Обменник: наличка €→USDT",       m:function(R){return R.eu*af(R.cash);}},
+    {f:"HUF", t:"EUR",  via:"Revolut",          step:"Revolut: Ft→€",                 m:function(R,wk){return (1/R.eh)*rev(R,wk);}},
+    {f:"HUF", t:"EUR",  via:"Wise",             step:"Wise: Ft→€",                    m:function(R){return (1/R.eh)*af(R.wHE);}},
+    {f:"HUF", t:"EUR",  via:"OTP",              step:"OTP: Ft→€ внутри банка",         m:function(R){return (1/R.eh)*af(R.otp);}},
+    {f:"EUR", t:"HUF",  via:"Revolut",          step:"Revolut: €→Ft",                 m:function(R,wk){return R.eh*rev(R,wk);}},
+    {f:"EUR", t:"HUF",  via:"Wise",             step:"Wise: €→Ft",                    m:function(R){return R.eh*af(R.wEH);}},
+    {f:"EUR", t:"HUF",  via:"Freedom",          step:"Freedom: €→$→Ft",               m:function(R){return R.eh*af(R.fEH);}},
+    {f:"USDT",t:"HUF",  via:"Bybit-карта",      step:"Bybit: карта платит в Ft",       m:function(R){return (R.eh/R.eu)*af(R.bybit);}},
+    {f:"RUB", t:"HUF",  via:"Altyn-карта",      step:"Altyn: карта платит в Ft",       m:function(R){return (R.eh/er(R))*af(R.acRH);}},
+    {f:"RUB", t:"EUR",  via:"Altyn → Freedom",  step:"Altyn: ₽ → на евросчёт Freedom", last:true, m:function(R){return (1/er(R))*af(R.aRE);}}
   ];
+  var SPEND = {
+    HUF:{label:"OTP-карта напрямую", step:"OTP: платишь картой в Ft"},
+    EUR:{label:"Трата в евро (Freedom / Wise / Revolut)", step:"Платишь картой в €"}
+  };
+  var ASSETS = ["RUB","HUF","EUR","EURC","USDT"];
+
+  function buildRoutes(){
+    var EDGES = {}; LEG.forEach(function(l){ (EDGES[l.f]=EDGES[l.f]||[]).push(l); });
+    var out = [];
+    Object.keys(SPEND).forEach(function(c){
+      out.push({f:c,t:c,label:SPEND[c].label,steps:[SPEND[c].step],exch:false,m:function(){return 1;}});
+    });
+    function walk(node, target, visited, chain){
+      (EDGES[node]||[]).forEach(function(l){
+        if(l.t!==target && !HUB[l.t]) return;   // transit only through hubs
+        if(l.last && l.t!==target) return;      // delivery legs can only be last
+        if(visited[l.t]) return;                // no repeated nodes
+        var ch = chain.concat(l);
+        if(l.t===target){
+          out.push({
+            f:ch[0].f, t:target,
+            label:ch.map(function(x){return x.via;}).join(" → "),
+            steps:ch.map(function(x){return x.step;}),
+            exch:ch.some(function(x){return x.exch;}),
+            m:(function(c){return function(R,wk){var p=1; for(var i=0;i<c.length;i++)p*=c[i].m(R,wk); return p;};})(ch)
+          });
+        } else {
+          var v2={}; for(var k in visited)v2[k]=1; v2[l.t]=1;
+          walk(l.t, target, v2, ch);
+        }
+      });
+    }
+    ASSETS.forEach(function(f){ ASSETS.forEach(function(t){
+      if(f!==t){ var v={}; v[f]=1; walk(f, t, v, []); }
+    });});
+    return out;
+  }
+  var ROUTES = buildRoutes();
 
   var TARGETS = { RUB:["HUF","EUR","USDT"], HUF:["HUF","EUR","RUB"], EUR:["EUR","HUF","RUB","USDT"], EURC:["RUB","USDT"], USDT:["RUB","EUR","HUF"] };
   var DEFTGT = { RUB:"HUF", HUF:"EUR", EUR:"RUB", EURC:"RUB", USDT:"RUB" };
