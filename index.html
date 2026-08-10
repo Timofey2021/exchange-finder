@@ -154,9 +154,11 @@
   .htab th:first-child{text-align:left}
   .htab td{text-align:right; padding:6px 8px; border-bottom:1px solid var(--line-soft); color:var(--ink); white-space:nowrap}
   .htab td:first-child{text-align:left; color:var(--muted)}
-  .htab .up{color:var(--gain)} .htab .down{color:var(--loss)}
+  .up{color:var(--gain)} .down{color:var(--loss)}
+  .hist-status{font-family:var(--mono); font-size:11px; color:var(--faint); margin:2px 2px 8px; min-height:14px}
   .hist-empty{font-family:var(--sans); font-size:13px; color:var(--muted); padding:6px 2px 14px; line-height:1.5}
-  .hist-foot{display:flex; justify-content:flex-end; padding:12px 2px 2px}
+  .hist-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 2px 2px}
+  .hist-src{font-family:var(--mono); font-size:11px; color:var(--faint); margin-right:auto}
 
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
@@ -237,9 +239,10 @@
 
   <details class="hist">
     <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>История курса</summary>
+    <div id="histStatus" class="hist-status"></div>
     <div id="sparkBox"></div>
     <div id="histBody"></div>
-    <div class="hist-foot"><button class="reset" type="button" id="histClear">Очистить историю</button></div>
+    <div class="hist-foot"><span class="hist-src">Источник: ЦБ РФ · за 3 мес.</span><button class="reset" type="button" id="histClear">Обновить</button></div>
   </details>
 
   <details class="rates">
@@ -367,41 +370,59 @@
     setEff("p2pEffSell", state.R.sUE, state.p2pSell==null);
   }
 
-  // ---- rate history (localStorage, one snapshot per day) ----
-  var HKEY="xf_hist";
-  function hLoad(){ try{ return JSON.parse(localStorage.getItem(HKEY))||[]; }catch(e){ return []; } }
-  function hSave(a){ try{ localStorage.setItem(HKEY, JSON.stringify(a)); }catch(e){} }
-  function hToday(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-  function snap(){
-    var a=hLoad(), d=hToday();
-    var rec={t:d, eu:state.R.eu, eh:state.R.eh, ur:state.R.ur, buy:state.p2pBuy, sell:state.p2pSell};
-    var idx=-1; for(var k=0;k<a.length;k++){ if(a[k].t===d){idx=k;break;} }
-    if(idx>=0) a[idx]=rec; else a.push(rec);
-    a.sort(function(x,y){return x.t<y.t?-1:1;});
-    if(a.length>60) a=a.slice(a.length-60);
-    hSave(a); renderHist();
+  // ---- rate history: real CBR daily series (EUR/RUB & EUR/HUF), cached ----
+  var HKEY="xf_hist_cbr", HDAYS=90, HSTEP=3;
+  function hLoad(){ try{ return JSON.parse(localStorage.getItem(HKEY))||{}; }catch(e){ return {}; } }
+  function hSave(o){ try{ localStorage.setItem(HKEY, JSON.stringify(o)); }catch(e){} }
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function keyOf(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  function cbrUrl(d,latest){ return latest ? "https://www.cbr-xml-daily.ru/daily_json.js"
+    : "https://www.cbr-xml-daily.ru/archive/"+d.getFullYear()+"/"+pad2(d.getMonth()+1)+"/"+pad2(d.getDate())+"/daily_json.js"; }
+  function parseCBR(j){
+    var V=j&&j.Valute; if(!V||!V.EUR) return null;
+    var er=V.EUR.Value/(V.EUR.Nominal||1);
+    var eh=(V.HUF&&V.HUF.Value)? er/(V.HUF.Value/(V.HUF.Nominal||1)) : null;
+    return {t:(j.Date||"").slice(0,10), er:er, eh:eh};
+  }
+  function backfill(){
+    var cache=hLoad(), today=new Date(), st=document.getElementById("histStatus");
+    var targets=[{d:today, latest:true}];
+    for(var i=HSTEP;i<=HDAYS;i+=HSTEP){ var d=new Date(today.getTime()-i*864e5), wd=d.getDay(); if(wd===0||wd===6) continue; targets.push({d:d, latest:false}); }
+    var need=targets.filter(function(t){ return t.latest || !cache[keyOf(t.d)]; });
+    if(!need.length){ renderHist(); return; }
+    if(st) st.textContent="загружаю историю ЦБ…";
+    var jobs=need.map(function(t){
+      return fetch(cbrUrl(t.d,t.latest)).then(function(r){return r.ok?r.json():null;}).then(function(j){
+        var p=j&&parseCBR(j); if(p&&p.t){ cache[p.t]={er:p.er, eh:p.eh}; }
+      }).catch(function(){});
+    });
+    Promise.all(jobs).then(function(){ hSave(cache); if(st) st.textContent=""; renderHist(); });
   }
   function sparkSVG(vals, label){
-    if(vals.length<2) return '<div class="spark-lbl">'+label+' · нужно ≥ 2 снимков для графика</div>';
+    if(vals.length<2) return '<div class="spark-lbl">'+label+' · мало данных</div>';
     var w=560,h=54,p=5, mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), rng=(mx-mn)||1;
     var pts=vals.map(function(v,i){ return [p+(w-2*p)*i/(vals.length-1), p+(h-2*p)*(1-(v-mn)/rng)]; });
     var line=pts.map(function(q,i){return (i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ");
     var area="M"+pts[0][0].toFixed(1)+" "+(h-p)+" "+pts.map(function(q){return "L"+q[0].toFixed(1)+" "+q[1].toFixed(1);}).join(" ")+" L"+pts[pts.length-1][0].toFixed(1)+" "+(h-p)+" Z";
-    var last=pts[pts.length-1];
-    return '<div class="spark-lbl">'+label+': '+vals[0].toFixed(1)+' → '+vals[vals.length-1].toFixed(1)+'</div>'+
+    var last=pts[pts.length-1], pct=(vals[vals.length-1]/vals[0]-1)*100;
+    var chg=' <span class="'+(pct>=0?"up":"down")+'">'+(pct>=0?"+":"−")+Math.abs(pct).toFixed(1).replace(".",",")+" %</span>";
+    return '<div class="spark-lbl">'+label+': '+vals[0].toFixed(1)+" → "+vals[vals.length-1].toFixed(1)+chg+'</div>'+
       '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><path class="area" d="'+area+'"/><path class="line" d="'+line+'"/><circle class="dot" cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="2.6"/></svg>';
   }
-  function hcell(v,pv,dp){ var arr=""; if(pv!=null){ if(v>pv)arr=' <span class="up">▲</span>'; else if(v<pv)arr=' <span class="down">▼</span>'; } return '<td>'+v.toFixed(dp)+arr+'</td>'; }
+  function fmtN(v,dp){ return new Intl.NumberFormat("ru-RU",{minimumFractionDigits:dp,maximumFractionDigits:dp}).format(v); }
+  function nearestKey(keys, target){ var best=null, bd=Infinity; keys.forEach(function(k){ var dd=Math.abs(new Date(k)-target); if(dd<bd){bd=dd; best=k;} }); return best; }
   function renderHist(){
-    var a=hLoad(), body=document.getElementById("histBody"), sb=document.getElementById("sparkBox");
+    var cache=hLoad(), keys=Object.keys(cache).sort(), sb=document.getElementById("sparkBox"), body=document.getElementById("histBody");
     if(!body) return;
-    if(!a.length){ body.innerHTML='<div class="hist-empty">Пока пусто. История заполняется сама — заходи раз в день, и здесь появится движение мирового курса.</div>'; if(sb)sb.innerHTML=""; return; }
-    // world cross-rates: € → ₽ (EUR/RUB = EUR/USD × USD/RUB) and € → Ft (EUR/HUF)
-    if(sb) sb.innerHTML = sparkSVG(a.map(function(x){return x.eu*x.ur;}),"€ → ₽ (рынок)") + sparkSVG(a.map(function(x){return x.eh;}),"€ → Ft (рынок)");
-    var rows=a.slice().reverse();
-    var html='<div class="hist-scroll"><table class="htab"><thead><tr><th>Дата</th><th>€ → ₽</th><th>€ → Ft</th></tr></thead><tbody>';
-    rows.forEach(function(x,i){ var pv=rows[i+1];
-      html+='<tr><td>'+x.t.slice(5)+'</td>'+hcell(x.eu*x.ur, pv?pv.eu*pv.ur:null, 1)+hcell(x.eh, pv&&pv.eh, 1)+'</tr>';
+    if(keys.length<2){ body.innerHTML='<div class="hist-empty">История курса ЦБ подгрузится за пару секунд… Если не появилась — нажми «Обновить».</div>'; if(sb)sb.innerHTML=""; return; }
+    var er=keys.map(function(k){return cache[k].er;});
+    var eh=keys.filter(function(k){return cache[k].eh!=null;}).map(function(k){return cache[k].eh;});
+    if(sb) sb.innerHTML = sparkSVG(er,"€ → ₽ (ЦБ)") + sparkSVG(eh,"€ → Ft (ЦБ)");
+    var today=new Date();
+    var refs=[["сейчас",0],["−1 нед",7],["−1 мес",30],["−3 мес",90]];
+    var html='<div class="hist-scroll"><table class="htab"><thead><tr><th>Период</th><th>€ → ₽</th><th>€ → Ft</th></tr></thead><tbody>';
+    refs.forEach(function(r){ var k=nearestKey(keys, new Date(today.getTime()-r[1]*864e5)); var c=cache[k];
+      html+='<tr><td>'+r[0]+' · '+k.slice(5)+'</td><td>'+fmtN(c.er,1)+'</td><td>'+(c.eh!=null?fmtN(c.eh,1):"—")+'</td></tr>';
     });
     body.innerHTML=html+'</tbody></table></div>';
   }
@@ -508,19 +529,19 @@
       state.R.eu=+(1/E).toFixed(4); if(H) state.R.eh=+(H/E).toFixed(2); if(U) state.R.ur=+(U).toFixed(2);
       ["eu","eh","ur"].forEach(function(k){var e=document.getElementById("r_"+k); if(e)e.value=state.R[k];});
       var d=j.time_last_update_utc ? new Date(j.time_last_update_utc) : new Date();
-      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); updateBar(); render(); snap();
+      st.textContent="курс обновлён "+d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}); updateBar(); render();
     }).catch(function(){ st.textContent="авто-курс недоступен — курс можно вписать вручную"; });
   }
 
   document.getElementById("amount").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.amount=isNaN(v)?0:v; render();});
   document.getElementById("refreshBtn").addEventListener("click",refreshWorld);
-  document.getElementById("p2pBuy").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pBuy=(!isNaN(v)&&v>0)?v:null; render(); snap();});
-  document.getElementById("p2pSell").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pSell=(!isNaN(v)&&v>0)?v:null; render(); snap();});
+  document.getElementById("p2pBuy").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pBuy=(!isNaN(v)&&v>0)?v:null; render();});
+  document.getElementById("p2pSell").addEventListener("input",function(e){var v=parseFloat(e.target.value); state.p2pSell=(!isNaN(v)&&v>0)?v:null; render();});
   document.getElementById("p2pClear").addEventListener("click",function(){ state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; render(); });
-  document.getElementById("histClear").addEventListener("click",function(){ try{localStorage.removeItem(HKEY);}catch(e){} renderHist(); });
+  document.getElementById("histClear").addEventListener("click",function(){ try{localStorage.removeItem(HKEY);}catch(e){} renderHist(); backfill(); });
   document.getElementById("resetBtn").addEventListener("click",function(){ state.R=Object.assign({},DEF); state.p2pBuy=null; state.p2pSell=null; document.getElementById("p2pBuy").value=""; document.getElementById("p2pSell").value=""; syncRateInputs(); updateBar(); render(); });
 
-  buildWk(); buildFrom(); buildTo(); buildRates(); updateBar(); render(); renderHist(); refreshWorld();
+  buildWk(); buildFrom(); buildTo(); buildRates(); updateBar(); render(); renderHist(); backfill(); refreshWorld();
 })();
 </script>
 </body>
