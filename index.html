@@ -217,12 +217,12 @@
         <span class="p2p-eff" id="p2pEffSell"></span>
       </div>
       <div class="p2p-input">
-        <input id="p2pSell" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.86" aria-label="Цена продажи USDT в евро">
+        <input id="p2pSell" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.85" aria-label="Цена продажи USDT в евро">
         <span class="p2p-unit">€ за 1 USDT</span>
       </div>
     </div>
     <div class="p2p-foot">
-      <p class="p2p-hint">💡 P2P скачет, и цена покупки ≠ продажи. Впишите актуальные за 1 USDT. Необязательно — без них берутся усреднённые значения.</p>
+      <p class="p2p-hint">💡 P2P скачет, и цена покупки ≠ продажи. Впишите актуальные за 1 USDT. Необязательно — без них берётся стандарт: покупка 0.95, продажа 0.85 € за USDT.</p>
       <div class="p2p-btns">
         <button type="button" class="p2p-clear" id="p2pClear">сброс</button>
       </div>
@@ -264,7 +264,7 @@
   var DEF = {
     eu:1.1561, eh:362.7, ur:82.30,
     exch:4.62, altynIn:-0.15, ntCard:-5.75, ntRU:-3.85, aRU:-4.77,
-    cash:2.45, pEU:-5.45, sUE:-0.70, bybit:-2.30,
+    cash:2.45, pEU:-8.95, sUE:-1.73, bybit:-2.30,
     acRH:-6.15, aRE:-5.97, wEH:-0.70, wHE:-1.30, fEH:-3.10, otp:-4.90,
     revWk:-0.60, revWe:-1.60
   };
@@ -350,15 +350,19 @@
 
   var state = { amount:10000, from:"RUB", to:"HUF", weekend:false, p2pBuy:null, p2pSell:null, R:Object.assign({},DEF) };
 
+  // Standard P2P prices (€ per 1 USDT) used when a field is left empty.
+  var STD = { buy:0.95, sell:0.85 };
+
   // P2P prices are entered as € per 1 USDT (buy ≠ sell) and converted to the
-  // pEU / sUE deviations against the live EUR/USD. Empty → averaged defaults.
+  // pEU / sUE deviations against the live EUR/USD. Empty → the STD prices.
   function setEff(id,d,isDef){
     var e=document.getElementById(id); if(!e) return;
     e.textContent="≈ "+(d>=0?"+":"−")+Math.abs(d).toFixed(1).replace(".",",")+" % к рынку"+(isDef?" · стандарт":"");
   }
   function applyP2P(){
-    state.R.pEU = (state.p2pBuy!=null)  ? (1/(state.p2pBuy*state.R.eu)-1)*100 : DEF.pEU;
-    state.R.sUE = (state.p2pSell!=null) ? (state.p2pSell*state.R.eu-1)*100     : DEF.sUE;
+    var bp=(state.p2pBuy!=null)?state.p2pBuy:STD.buy, sp=(state.p2pSell!=null)?state.p2pSell:STD.sell;
+    state.R.pEU = (1/(bp*state.R.eu)-1)*100;
+    state.R.sUE = (sp*state.R.eu-1)*100;
     setEff("p2pEffBuy",  state.R.pEU, state.p2pBuy==null);
     setEff("p2pEffSell", state.R.sUE, state.p2pSell==null);
   }
