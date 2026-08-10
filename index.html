@@ -186,10 +186,10 @@
   };
 
   var DEF = {
-    eu:1.1557, eh:366, ur:81.41,
-    exch:4.62, altynIn:0.20, ntCard:-5.54, ntRU:-4.52, aRU:-5.23,
-    cash:2.45, pEU:-2.01, sUE:-0.70,
-    acRH:-7.15, aRE:-5.97, wEH:-0.70, wHE:-1.30, fEH:-3.10, otp:-4.90,
+    eu:1.1561, eh:362.7, ur:82.30,
+    exch:4.62, altynIn:-0.15, ntCard:-5.75, ntRU:-3.85, aRU:-4.77,
+    cash:2.45, pEU:-8.90, sUE:-0.70, bybit:-2.30,
+    acRH:-6.15, aRE:-5.97, wEH:-0.70, wHE:-1.30, fEH:-3.10, otp:-4.90,
     revWk:-0.60, revWe:-1.60
   };
 
@@ -197,7 +197,7 @@
   var DGROUPS = [
     {title:"USDT ↔ рубли  (%, + выгода / − потеря)", items:[["exch","обменник в РФ USDT→₽"],["altynIn","Altyn USDT→₽"],["ntCard","Antarctic→карта USDT→₽"],["ntRU","Antarctic ₽→USDT"],["aRU","Altyn ₽→USDT"]]},
     {title:"EUR ↔ USDT  (%)", items:[["cash","наличка €→USDT"],["pEU","криптобиржа €↔USDT (P2P)"],["sUE","USDT→€ на бирже"]]},
-    {title:"Карты  (%)", items:[["acRH","Altyn карта ₽→Ft"],["aRE","Altyn ₽→€ (Freedom)"],["wEH","Wise €→Ft"],["wHE","Wise Ft→€"],["fEH","Freedom €→Ft"],["otp","OTP внутри банка Ft→€"]]},
+    {title:"Карты  (%)", items:[["bybit","Bybit-карта USDT→Ft"],["acRH","Altyn карта ₽→Ft"],["aRE","Altyn ₽→€ (Freedom)"],["wEH","Wise €→Ft"],["wHE","Wise Ft→€"],["fEH","Freedom €→Ft"],["otp","OTP внутри банка Ft→€"]]},
     {title:"Revolut  (%)", items:[["revWk","будни"],["revWe","выходные"]]}
   ];
 
@@ -207,6 +207,8 @@
 
   var ROUTES = [
     {f:"RUB",t:"HUF",label:"Altyn-карта напрямую",steps:["Altyn: карта платит в Ft"],m:function(R){return (R.eh/er(R))*af(R.acRH);}},
+    {f:"RUB",t:"HUF",label:"Antarctic → Bybit-карта",steps:["Antarctic: ₽→USDT","Bybit: карта платит в Ft"],m:function(R){return (1/R.ur)*af(R.ntRU)*(R.eh/R.eu)*af(R.bybit);}},
+    {f:"RUB",t:"HUF",label:"Altyn-крипта → Bybit-карта",steps:["Altyn: ₽→USDT (крипта)","Bybit: карта платит в Ft"],m:function(R){return (1/R.ur)*af(R.aRU)*(R.eh/R.eu)*af(R.bybit);}},
     {f:"RUB",t:"HUF",label:"Antarctic → биржа → Revolut",steps:["Antarctic: ₽→USDT","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.ntRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
     {f:"RUB",t:"HUF",label:"Altyn-крипта → биржа → Revolut",steps:["Altyn: ₽→USDT (крипта)","Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.ur)*af(R.aRU)*(1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}},
     {f:"RUB",t:"EUR",label:"Altyn → Freedom (евросчёт)",steps:["Altyn: ₽ → на евросчёт Freedom"],m:function(R){return (1/er(R))*af(R.aRE);}},
@@ -225,6 +227,7 @@
     {f:"EUR",t:"HUF",label:"Revolut",steps:["Revolut: €→Ft"],m:function(R,wk){return R.eh*rev(R,wk);}},
     {f:"EUR",t:"HUF",label:"Wise",steps:["Wise: €→Ft"],m:function(R){return R.eh*af(R.wEH);}},
     {f:"EUR",t:"HUF",label:"Freedom (двойная конвертация)",steps:["Freedom: €→$→Ft"],m:function(R){return R.eh*af(R.fEH);}},
+    {f:"EUR",t:"HUF",label:"P2P → Bybit-карта",steps:["Криптобиржа: €→USDT (P2P)","Bybit: карта платит в Ft"],m:function(R){return R.eu*af(R.pEU)*(R.eh/R.eu)*af(R.bybit);}},
     {f:"EUR",t:"RUB",label:"Биржа → обменник в РФ",exch:true,steps:["Криптобиржа: €→USDT (P2P)","Обменник в РФ: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.exch);}},
     {f:"EUR",t:"RUB",label:"Биржа → Altyn",steps:["Криптобиржа: €→USDT (P2P)","Altyn: USDT→₽"],m:function(R){return R.eu*af(R.pEU)*R.ur*af(R.altynIn);}},
     {f:"EUR",t:"USDT",label:"Криптобиржа (P2P)",steps:["Криптобиржа: €→USDT (P2P)"],m:function(R){return R.eu*af(R.pEU);}},
@@ -235,6 +238,7 @@
     {f:"USDT",t:"RUB",label:"Altyn (завести и продать)",steps:["Altyn: USDT→₽"],m:function(R){return R.ur*af(R.altynIn);}},
     {f:"USDT",t:"RUB",label:"Antarctic на карту",steps:["Antarctic: USDT→₽ на карту РФ"],m:function(R){return R.ur*af(R.ntCard);}},
     {f:"USDT",t:"EUR",label:"Криптобиржа (P2P)",steps:["Криптобиржа: USDT→€ (P2P)"],m:function(R){return (1/R.eu)*af(R.sUE);}},
+    {f:"USDT",t:"HUF",label:"Bybit-карта напрямую",steps:["Bybit: карта платит в Ft"],m:function(R){return (R.eh/R.eu)*af(R.bybit);}},
     {f:"USDT",t:"HUF",label:"Биржа → Revolut",steps:["Криптобиржа: USDT→€ (P2P)","Revolut: €→Ft"],m:function(R,wk){return (1/R.eu)*af(R.sUE)*R.eh*rev(R,wk);}}
   ];
 
